@@ -11,9 +11,6 @@ COPY css /usr/share/nginx/html/css
 COPY scripts /usr/share/nginx/html/scripts
 COPY icons /usr/share/nginx/html/icons
 COPY fonts /usr/share/nginx/html/fonts
-COPY docker-entrypoint.sh /app-entrypoint.sh
-RUN chmod 0755 /app-entrypoint.sh
-
 # Writes scripts/runtime-config.js at start-up. Production sets no AGENT_URL,
 # LOGIN_URL or MAIN_SITE_PORT, so its build-time addresses stay in force; staging
 # sets them (compose.staging.yaml).
@@ -22,4 +19,3 @@ RUN sed -i 's/\r$//' /docker-entrypoint.d/40-runtime-config.sh && chmod 755 /doc
 
 EXPOSE 80
 
-ENTRYPOINT ["/app-entrypoint.sh"]

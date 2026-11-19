@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 
 from app import app, get_matcher, get_metadata, get_pipeline
 from tender_ml.matching import CategoryMatcher
+from tender_ml import config
 
 METADATA = {"version": "20261117-120000", "sklearn_version": "test", "metrics": {"accuracy": 1.0}}
 
@@ -28,6 +29,16 @@ def test_home_page_is_served(client):
 def test_health_and_model_report_the_model_version(client):
     assert client.get("/health").json() == {"status": "ok", "model_version": "20261117-120000"}
     assert client.get("/model").json() == METADATA
+
+
+def test_service_starts_degraded_until_a_model_is_trained(monkeypatch, tmp_path):
+    monkeypatch.setattr(config, "MODEL_PATH", tmp_path / "missing-model.joblib")
+
+    with TestClient(app) as untrained_client:
+        assert untrained_client.get("/health").json() == {
+            "status": "degraded", "reason": "model_not_trained",
+        }
+        assert untrained_client.post("/predict", json={"title": "Office cleaning"}).status_code == 503
 
 
 def test_predict_returns_the_category_suggestions_and_explanation(client):

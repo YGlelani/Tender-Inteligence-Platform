@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from sklearn.pipeline import Pipeline
 
@@ -32,13 +32,11 @@ PAGE = Path(__file__).parent / "static" / "index.html"
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
-    """Load the model once at startup instead of on every request."""
-    if not config.MODEL_PATH.exists():
-        raise RuntimeError(f"No model found at {config.MODEL_PATH}. Run 'python train.py' first.")
-    pipeline, metadata = load_model(config.MODEL_PATH)
-    application.state.pipeline = pipeline
-    application.state.metadata = metadata
-    application.state.matcher = CategoryMatcher(pipeline)
+    """Start before the first training run; load the model when it becomes available."""
+    application.state.pipeline = None
+    application.state.metadata = None
+    application.state.matcher = None
+    _load_model_if_available(application)
     yield
 
 
@@ -46,35 +44,54 @@ app = FastAPI(title="Tender Category Classifier", lifespan=lifespan)
 
 
 def get_pipeline(request: Request) -> Pipeline:
+    if not _load_model_if_available(request.app):
+        raise HTTPException(status_code=503, detail="The category model has not been trained yet")
     return request.app.state.pipeline
 
 
 def get_matcher(request: Request) -> CategoryMatcher:
+    get_pipeline(request)
     return request.app.state.matcher
 
 
-def get_metadata(request: Request) -> dict:
+def get_metadata(request: Request) -> dict | None:
+    if not _load_model_if_available(request.app):
+        return None
     return request.app.state.metadata
+
+
+def _load_model_if_available(application: FastAPI) -> bool:
+    """Load a newly trained model once, including when training finishes after startup."""
+    if application.state.metadata is not None:
+        return True
+    if not config.MODEL_PATH.exists():
+        return False
+    pipeline, metadata = load_model(config.MODEL_PATH)
+    application.state.pipeline = pipeline
+    application.state.metadata = metadata
+    application.state.matcher = CategoryMatcher(pipeline)
+    return True
 
 
 Model = Annotated[Pipeline, Depends(get_pipeline)]
 Matcher = Annotated[CategoryMatcher, Depends(get_matcher)]
-Metadata = Annotated[dict, Depends(get_metadata)]
-
-
 @app.get("/", include_in_schema=False)
 def home() -> FileResponse:
     return FileResponse(PAGE)
 
 
 @app.get("/health")
-def health(metadata: Metadata) -> dict:
+def health(metadata: dict | None = Depends(get_metadata)) -> dict:
+    if metadata is None:
+        return {"status": "degraded", "reason": "model_not_trained"}
     return {"status": "ok", "model_version": metadata["version"]}
 
 
 @app.get("/model")
-def model_info(metadata: Metadata) -> dict:
+def model_info(metadata: dict | None = Depends(get_metadata)) -> dict:
     """When the model was trained, with which library version, and how well it scored."""
+    if metadata is None:
+        raise HTTPException(status_code=503, detail="The category model has not been trained yet")
     return metadata
 
 
