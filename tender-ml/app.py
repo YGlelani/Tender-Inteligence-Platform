@@ -75,6 +75,8 @@ def _load_model_if_available(application: FastAPI) -> bool:
 
 Model = Annotated[Pipeline, Depends(get_pipeline)]
 Matcher = Annotated[CategoryMatcher, Depends(get_matcher)]
+
+
 @app.get("/", include_in_schema=False)
 def home() -> FileResponse:
     return FileResponse(PAGE)

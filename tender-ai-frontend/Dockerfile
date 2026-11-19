@@ -18,4 +18,3 @@ COPY docker-entrypoint.d/40-runtime-config.sh /docker-entrypoint.d/40-runtime-co
 RUN sed -i 's/\r$//' /docker-entrypoint.d/40-runtime-config.sh && chmod 755 /docker-entrypoint.d/40-runtime-config.sh
 
 EXPOSE 80
-
