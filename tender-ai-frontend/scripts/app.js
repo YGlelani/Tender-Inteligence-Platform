@@ -1,6 +1,7 @@
-// These values will be replaced by the GitHub Action during deployment
-const AGENT_URL = "__AGENT_URL__";
-const LOGIN_URL = "__LOGIN_URL__";
+// Staging: set at container start-up in scripts/runtime-config.js (window.APP_CONFIG).
+// Production: the GitHub Action replaces the placeholders below during the build.
+const AGENT_URL = (window.APP_CONFIG && window.APP_CONFIG.AGENT_URL) || "__AGENT_URL__";
+const LOGIN_URL = (window.APP_CONFIG && window.APP_CONFIG.LOGIN_URL) || "__LOGIN_URL__";
 
 const app = {
     state: { profileId: null, profile: null, matches: [] },

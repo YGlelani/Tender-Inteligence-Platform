@@ -1,9 +1,8 @@
-fastapi
-uvicorn
-psycopg2-binary
-passlib
-bcrypt
-pyjwt
-httpx
-python-dotenv
-python-multipart
+fastapi==0.163.0
+uvicorn==0.54.0
+passlib==1.7.4
+bcrypt==5.0.0
+pyjwt==2.15.1
+httpx==0.28.1
+python-dotenv==1.2.4
+python-multipart==0.0.33

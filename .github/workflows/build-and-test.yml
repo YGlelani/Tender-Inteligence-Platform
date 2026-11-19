@@ -1,0 +1,238 @@
+# Reusable build-and-test pipeline for the whole monorepo. Called by ci.yml,
+# deploy-staging.yml and deploy-production.yml, so every branch runs the same checks.
+#
+#   suite: basic  (dev)        static checks, unit tests, frontend smoke tests, image builds
+#   suite: full   (everything  basic + dependency vulnerability audit + integration test:
+#                  else)       the whole staging stack started on the runner with throwaway
+#                              secrets and probed by scripts/staging/smoke_test.sh
+#
+# Runs on GitHub-hosted runners only. It never deploys and never sees a real secret.
+# (The .github/workflows folders inside the service folders are copies from the
+# original service repositories; GitHub does not run workflows from subfolders.)
+name: Build and test
+
+on:
+  workflow_call:
+    inputs:
+      suite:
+        description: "basic or full"
+        type: string
+        default: full
+
+permissions:
+  contents: read
+
+jobs:
+  environment-checks:
+    name: Environment isolation checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Staging isolation checks (names, ports, networks, volumes, Redis, databases, URLs)
+        run: |
+          python -m pip install --quiet pyyaml==6.0.2
+          python scripts/staging/check_staging.py --env-file .env.staging.example --allow-placeholders
+
+      - name: Validate the staging Compose file with Docker Compose
+        run: docker compose --env-file .env.staging.example -f compose.staging.yaml config --quiet
+
+      - name: Validate the production Compose files (unchanged, still deployed per service)
+        run: |
+          set -euo pipefail
+          # These files read .env files that only exist on the server; empty ones are enough to parse them.
+          for dir in alerts-api jwt tender_apis; do touch "$dir/.env"; done
+          export USER_SERVER_PORT=8009
+          for file in tender-scrapping-database/compose.yaml tender-ai-agent/compose.yaml Signup-api/compose.yaml \
+                      alerts-api/compose.yaml jwt/compose.yml tender_apis/compose.yaml tender-ml/compose.yaml \
+                      frontend/compose.yaml tender-ai-frontend/docker-compose.yml; do
+            echo "Checking $file"
+            docker compose -f "$file" config --quiet
+          done
+
+      - name: Check shell scripts
+        run: |
+          shellcheck --severity=error scripts/staging/smoke_test.sh scripts/deploy/deploy_production.sh \
+            frontend/docker-entrypoint.d/40-runtime-config.sh tender-ai-frontend/docker-entrypoint.d/40-runtime-config.sh
+
+  python-tests:
+    name: Tests - ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: alerts-api
+            python: "3.11"
+            install: pip install -r requirements-dev.txt
+            audit: pip-audit -r requirements.txt
+            test: |
+              python -m compileall -q app tests
+              python -m pytest -q
+          - service: Signup-api
+            python: "3.11"
+            install: pip install -r requirements.txt pytest httpx
+            audit: pip-audit -r requirements.txt
+            test: python -m pytest -q
+          - service: tender_apis
+            python: "3.11"
+            install: pip install -r requirements.txt pytest
+            audit: pip-audit -r requirements.txt
+            test: ENABLE_SCHEDULER=false python -m pytest -q
+          - service: tender-ml
+            python: "3.13"
+            install: pip install -r requirements-dev.txt
+            audit: ""
+            test: |
+              python -m compileall -q tender_ml tests app.py train.py predict.py audit.py compare_models.py
+              python -m pytest -q
+          - service: tender-scrapping-database
+            python: "3.11"
+            install: ""
+            audit: |
+              pip-audit -r scraper-api/requirements.txt
+              pip-audit -r client-api/requirements.txt
+              pip-audit -r ai/requirements.txt
+            # Same steps as the service's own CI: one virtual environment per component.
+            test: |
+              python -m compileall -q scraper-api/app client-api/app ai scripts tests
+              for part in scraper-api client-api ai; do
+                python -m venv "$RUNNER_TEMP/$part-venv"
+                "$RUNNER_TEMP/$part-venv/bin/python" -m pip install --quiet -r "$part/requirements.txt"
+              done
+              (cd scraper-api && DATABASE_PATH="$RUNNER_TEMP/scraper.db" API_KEY=test-api-key "$RUNNER_TEMP/scraper-api-venv/bin/python" -c "import app.main" \
+                && DATABASE_PATH="$RUNNER_TEMP/scraper.db" API_KEY=test-api-key "$RUNNER_TEMP/scraper-api-venv/bin/python" -m unittest discover -s tests -v)
+              (cd client-api && DATABASE_PATH="$RUNNER_TEMP/client.db" CORS_ORIGINS="*" "$RUNNER_TEMP/client-api-venv/bin/python" -c "import app.main" \
+                && DATABASE_PATH="$RUNNER_TEMP/client.db" CORS_ORIGINS="*" "$RUNNER_TEMP/client-api-venv/bin/python" -m unittest discover -s tests -v)
+              (cd ai && OLLAMA_BASE_URL=http://localhost:11434 AI_MODEL=llama3.2:3b DATABASE_PATH="$RUNNER_TEMP/ai.db" "$RUNNER_TEMP/ai-venv/bin/python" -c "import main" \
+                && OLLAMA_BASE_URL=http://localhost:11434 AI_MODEL=llama3.2:3b DATABASE_PATH="$RUNNER_TEMP/ai.db" "$RUNNER_TEMP/ai-venv/bin/python" -m unittest discover -s tests -v)
+              python -m venv "$RUNNER_TEMP/migration-venv"
+              "$RUNNER_TEMP/migration-venv/bin/python" -m pip install --quiet -r scripts/migration-requirements.txt
+              "$RUNNER_TEMP/migration-venv/bin/python" -m unittest discover -s tests -v
+          # Same as the Login API's own CI: a throwaway SQLite database with one test user.
+          - service: jwt
+            python: "3.11"
+            install: pip install -r requirements.txt pytest httpx
+            audit: pip-audit -r requirements.txt
+            test: |
+              python - <<'PY'
+              import os, sqlite3, bcrypt
+              db = sqlite3.connect(os.path.join(os.environ["RUNNER_TEMP"], "login-tests.db"))
+              db.execute("CREATE TABLE users (username TEXT PRIMARY KEY, hashed_password TEXT NOT NULL, is_active INTEGER NOT NULL DEFAULT 1)")
+              db.execute("INSERT INTO users (username, hashed_password, is_active) VALUES (?, ?, 1)",
+                         ("musiwalo", bcrypt.hashpw(b"password123", bcrypt.gensalt()).decode()))
+              db.commit()
+              PY
+              DATABASE_PATH="$RUNNER_TEMP/login-tests.db" JWT_SECRET=ci-only-jwt-secret SESSION_TIMEOUT_HOURS=2 python -m pytest -q
+          # No test suites exist yet for these two: syntax check only.
+          - service: cache-api
+            python: "3.12"
+            install: ""
+            audit: ""
+            test: python -m compileall -q app
+          - service: tender-ai-agent
+            python: "3.12"
+            install: ""
+            audit: pip-audit -r requirements.txt
+            test: python -m compileall -q app
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ matrix.service }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install dependencies
+        if: matrix.install != ''
+        run: |
+          python -m pip install --upgrade pip
+          ${{ matrix.install }}
+
+      - name: Check dependencies for known vulnerabilities
+        if: inputs.suite == 'full' && matrix.audit != ''
+        run: |
+          python -m pip install --quiet pip-audit==2.10.1
+          ${{ matrix.audit }}
+
+      - name: Run tests
+        run: |
+          set -euo pipefail
+          ${{ matrix.test }}
+
+  frontend-tests:
+    name: Tests - frontends
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Main site smoke tests
+        working-directory: frontend
+        run: |
+          node scripts/smoke-dashboard.mjs
+          node scripts/smoke-tender-search.mjs
+          node scripts/smoke-match-summary.mjs
+          node scripts/smoke-profile.mjs
+
+      - name: JavaScript syntax
+        run: |
+          set -euo pipefail
+          for file in frontend/script.js frontend/scripts/*.js tender-ai-frontend/scripts/*.js; do
+            node --check "$file"
+          done
+
+  docker:
+    name: ${{ inputs.suite == 'full' && 'Docker build and integration test' || 'Docker build' }}
+    runs-on: ubuntu-latest
+    needs: [environment-checks]
+    env:
+      COMPOSE_FILE: compose.staging.yaml
+      # Separate project name, so this never touches a real staging stack.
+      COMPOSE_PROJECT_NAME: tender-ci
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Throwaway settings (random secrets that exist only in this job)
+        run: |
+          set -euo pipefail
+          umask 077
+          {
+            echo "USER_SERVER_IP=127.0.0.1"
+            for name in STAGING_JWT_SECRET STAGING_INTERNAL_API_KEY STAGING_ACCOUNT_DELETION_KEY \
+                        STAGING_AI_SERVICE_API_KEY STAGING_SCRAPER_API_KEY; do
+              echo "$name=$(openssl rand -hex 32)"
+            done
+            # No scraping of the public site and no re-indexing from CI.
+            echo "STAGING_SCRAPER_LOOP_ENABLED=false"
+            echo "STAGING_TENDER_SYNC_INTERVAL=-1"
+          } > "$RUNNER_TEMP/ci.env"
+
+      - name: Build every image the stack uses
+        run: docker compose --env-file "$RUNNER_TEMP/ci.env" build
+
+      - name: Start the stack
+        if: inputs.suite == 'full'
+        run: docker compose --env-file "$RUNNER_TEMP/ci.env" up -d --wait --wait-timeout 600
+
+      - name: Smoke test
+        if: inputs.suite == 'full'
+        run: bash scripts/staging/smoke_test.sh "$RUNNER_TEMP/ci.env"
+
+      - name: Service logs
+        if: failure() && inputs.suite == 'full'
+        run: docker compose --env-file "$RUNNER_TEMP/ci.env" logs --tail 80
+
+      - name: Remove the stack
+        if: always() && inputs.suite == 'full'
+        run: docker compose --env-file "$RUNNER_TEMP/ci.env" down -v --remove-orphans

@@ -34,7 +34,7 @@ jobs:
 
       - name: Build image (native arm64)
         run: |
-          IMAGE=ghcr.io/${{ steps.lc.outputs.owner }}/ cache-api
+          IMAGE=ghcr.io/${{ steps.lc.outputs.owner }}/cache-api
           docker build \
             -t $IMAGE:latest \
             -t $IMAGE:${{ github.sha }} \
@@ -42,7 +42,7 @@ jobs:
 
       - name: Push image
         run: |
-          IMAGE=ghcr.io/${{ steps.lc.outputs.owner }}/ cache-api
+          IMAGE=ghcr.io/${{ steps.lc.outputs.owner }}/cache-api
           docker push $IMAGE:latest
           docker push $IMAGE:${{ github.sha }}
 

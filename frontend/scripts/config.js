@@ -1,4 +1,8 @@
-const USER_SERVER_IP = window.APP_CONFIG?.USER_SERVER_IP || window.location.hostname;
+// window.APP_CONFIG comes from scripts/runtime-config.js, which the container writes at
+// start-up (docker-entrypoint.d/40-runtime-config.sh). Production sets nothing there,
+// so the visitor's host name and the production ports below stay in force.
+const RUNTIME_CONFIG = window.APP_CONFIG || {};
+const USER_SERVER_IP = RUNTIME_CONFIG.USER_SERVER_IP || window.location.hostname;
 const SERVER_ORIGIN = `http://${USER_SERVER_IP}`;
 
 export const CONFIG = {
@@ -85,3 +89,11 @@ export const CONFIG = {
     refreshIntervals: { kpis: 30000, scrapeStatus: 15000 },
     requestTimeout: 15000
 };
+
+// Staging publishes the same services on other ports (for example 18001 instead of 8001).
+// RUNTIME_CONFIG.PORTS maps a service name above to its port; only the port changes.
+for (const [name, port] of Object.entries(RUNTIME_CONFIG.PORTS || {})) {
+    if (name !== "dashboard" && typeof CONFIG.services[name] === "string" && /^\d{1,5}$/.test(String(port))) {
+        CONFIG.services[name] = CONFIG.services[name].replace(/^(https?:\/\/[^/]+?):\d+/, `$1:${port}`);
+    }
+}

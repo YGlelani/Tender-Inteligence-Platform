@@ -33,17 +33,29 @@ jobs:
 
       - name: Create environment file
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           SESSION_TIMEOUT_HOURS: ${{ secrets.SESSION_TIMEOUT_HOURS }}
+          INTERNAL_API_KEY: ${{ secrets.INTERNAL_API_KEY }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_USE_TLS: ${{ secrets.SMTP_USE_TLS }}
         run: |
           : > .env
 
-          if [ -n "$DATABASE_URL" ]; then
-            printf 'DATABASE_URL=%s\n' "$DATABASE_URL" >> .env
-          fi
-
           printf 'JWT_SECRET=%s\n' "$JWT_SECRET" >> .env
+          printf 'INTERNAL_API_KEY=%s\n' "$INTERNAL_API_KEY" >> .env
+          printf 'EMAIL_FROM=%s\n' "$EMAIL_FROM" >> .env
+          printf 'SMTP_HOST=%s\n' "$SMTP_HOST" >> .env
+          printf 'SMTP_PORT=%s\n' "${SMTP_PORT:-587}" >> .env
+          printf 'SMTP_USERNAME=%s\n' "$SMTP_USERNAME" >> .env
+          printf 'SMTP_PASSWORD=%s\n' "$SMTP_PASSWORD" >> .env
+          printf 'SMTP_USE_TLS=%s\n' "${SMTP_USE_TLS:-true}" >> .env
+          if [ -z "$SMTP_HOST" ] || [ -z "$SMTP_USERNAME" ] || [ -z "$SMTP_PASSWORD" ] || [ -z "$EMAIL_FROM" ]; then
+            echo "Warning: SMTP secrets are incomplete; password reset codes cannot be emailed."
+          fi
 
           SESSION_TIMEOUT_HOURS="${SESSION_TIMEOUT_HOURS:-2}"
           if ! awk -v value="$SESSION_TIMEOUT_HOURS" 'BEGIN { if (value ~ /^([0-9]+([.][0-9]*)?|[.][0-9]+)$/ && value + 0 > 0) exit 0; exit 1 }'; then

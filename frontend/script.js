@@ -1,7 +1,11 @@
-const USER_SERVER_IP = window.location.hostname;
+// window.APP_CONFIG comes from scripts/runtime-config.js (written at container start-up);
+// it is empty in production, so the production ports below apply.
+const LOGIN_PAGE_CONFIG = window.APP_CONFIG || {};
+const LOGIN_PAGE_PORTS = LOGIN_PAGE_CONFIG.PORTS || {};
+const USER_SERVER_IP = LOGIN_PAGE_CONFIG.USER_SERVER_IP || window.location.hostname;
 const SERVER_ORIGIN = `http://${USER_SERVER_IP}`;
-const API_URL = `${SERVER_ORIGIN}:8006`;
-const SIGNUP_URL = `${SERVER_ORIGIN}:8008/`;
+const API_URL = `${SERVER_ORIGIN}:${LOGIN_PAGE_PORTS.login || 8006}`;
+const SIGNUP_URL = `${SERVER_ORIGIN}:${LOGIN_PAGE_PORTS.signupFrontend || 8008}/`;
 // This script runs the login page (login.html). index.html is the public landing page.
 const DASHBOARD_URL = `${window.location.origin}/dashboard.html`;
 

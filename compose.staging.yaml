@@ -1,0 +1,480 @@
+# Staging stack for the whole Tender-Intelligence platform.
+#
+# One Compose project ("tender-staging") built from the service folders in this
+# repository. It shares nothing with production:
+#   - containers are named tender-staging-<service>-1 (no fixed container_name),
+#   - its own network (tender-staging_net), not tender-scrapping-net,
+#   - its own volumes (tender-staging_*), not tender-scrapping_tender-sqlite-data,
+#   - its own SQLite databases, Redis and Ollama,
+#   - its own image tags (tender-staging/<service>:staging), so a staging build can
+#     never replace an image a production container runs,
+#   - host ports in the 18xxx/19xxx range instead of production's 8xxx/9xxx,
+#   - it reads only STAGING_* variables plus USER_SERVER_IP, and no service uses
+#     env_file, so a production .env file or shell variable cannot leak in.
+# Every address one service uses to reach another is pinned below to a service on
+# the staging network and is deliberately not configurable.
+#
+# Start:     docker compose --env-file .env.staging -f compose.staging.yaml up -d --build
+# Validate:  python scripts/staging/check_staging.py --env-file .env.staging
+# Details:   STAGING_SETUP.md, ENVIRONMENT_VARIABLES.md
+
+name: tender-staging
+
+# ---------------------------------------------------------------------------
+# Shared values (YAML anchors). Required values stop Compose with a clear message.
+# ---------------------------------------------------------------------------
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-jwt-secret: &jwt-secret "${STAGING_JWT_SECRET:?STAGING_JWT_SECRET is required: a new random value, never the production JWT secret}"
+x-internal-key: &internal-key "${STAGING_INTERNAL_API_KEY:?STAGING_INTERNAL_API_KEY is required (Signup and Login APIs -> Notifications API)}"
+x-deletion-key: &deletion-key "${STAGING_ACCOUNT_DELETION_KEY:?STAGING_ACCOUNT_DELETION_KEY is required (Signup API -> AI agent)}"
+x-ai-key: &ai-key "${STAGING_AI_SERVICE_API_KEY:?STAGING_AI_SERVICE_API_KEY is required (AI agent -> AI service)}"
+
+# Browser pages allowed to call the staging APIs: the staging main site and AI workspace.
+x-cors: &cors "${STAGING_CORS_ORIGINS:-http://${USER_SERVER_IP}:${STAGING_FRONTEND_PORT:-18009},http://${USER_SERVER_IP}:${STAGING_AI_FRONTEND_PORT:-19001}}"
+
+# Staging mail account. Use a sandbox/test SMTP service, never the production mailbox.
+x-smtp: &smtp
+  EMAIL_FROM: ${STAGING_EMAIL_FROM:-}
+  SMTP_HOST: ${STAGING_SMTP_HOST:-}
+  SMTP_PORT: ${STAGING_SMTP_PORT:-587}
+  SMTP_USERNAME: ${STAGING_SMTP_USERNAME:-}
+  SMTP_PASSWORD: ${STAGING_SMTP_PASSWORD:-}
+  SMTP_USE_TLS: ${STAGING_SMTP_USE_TLS:-true}
+
+# The API images are python-slim based and have no curl. This only checks that the
+# server answers HTTP at all (any status), so a "degraded" service still counts as up;
+# scripts/staging/smoke_test.sh checks the answers themselves.
+x-healthcheck: &healthcheck-timing
+  interval: 10s
+  timeout: 5s
+  retries: 12
+  start_period: 20s
+
+services:
+  # -------------------------------------------------------------------------
+  # Data stores (internal only: no host ports)
+  # -------------------------------------------------------------------------
+  redis:
+    image: redis:8
+    logging: *default-logging
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks: [net]
+
+  ollama:
+    image: ollama/ollama:latest
+    logging: *default-logging
+    restart: unless-stopped
+    environment:
+      # Production keeps the model loaded forever (-1). Staging may share the host,
+      # so by default it frees the memory after 5 idle minutes.
+      OLLAMA_KEEP_ALIVE: ${STAGING_OLLAMA_KEEP_ALIVE:-5m}
+    volumes:
+      - ollama-data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks: [net]
+
+  # -------------------------------------------------------------------------
+  # tender-scrapping-database: client API, scraper API, AI service
+  # -------------------------------------------------------------------------
+  client-api:
+    build:
+      context: ./tender-scrapping-database
+      dockerfile: client-api/Dockerfile
+    image: tender-staging/client-api:${STAGING_IMAGE_TAG:-staging}
+    logging: *default-logging
+    restart: unless-stopped
+    environment:
+      # Creates the schema (db/schema.sql) in the empty staging database on first start.
+      DATABASE_PATH: /data/tenders.db
+      CORS_ORIGINS: *cors
+    ports:
+      - "${STAGING_CLIENT_PORT:-18001}:8001"
+    volumes:
+      - sqlite-data:/data
+    healthcheck:
+      <<: *healthcheck-timing
+      test: ["CMD", "python3", "-c", "import urllib.request as r, urllib.error as e\ntry: r.urlopen('http://127.0.0.1:8001/health', timeout=4)\nexcept e.HTTPError: pass"]
+    networks: [net]
+
+  scraper-api:
+    build:
+      context: ./tender-scrapping-database
+      dockerfile: scraper-api/Dockerfile
+    image: tender-staging/scraper-api:${STAGING_IMAGE_TAG:-staging}
+    logging: *default-logging
+    restart: unless-stopped
+    environment:
+      DATABASE_PATH: /data/tenders.db
+      API_KEY: ${STAGING_SCRAPER_API_KEY:?STAGING_SCRAPER_API_KEY is required (protects the scraper API's write endpoints)}
+      CORS_ORIGINS: *cors
+      # Staging fills its own database from the public eTenders site; it never
+      # copies production data.
+      ETENDERS_BASE_URL: ${STAGING_ETENDERS_BASE_URL:-https://www.etenders.gov.za}
+      ETENDERS_MAX_PAGES_DEFAULT: "10"
+      SCRAPER_LOOP_ENABLED: ${STAGING_SCRAPER_LOOP_ENABLED:-true}
+    ports:
+      - "${STAGING_SCRAPER_PORT:-18000}:8000"
+    volumes:
+      - sqlite-data:/data
+    depends_on:
+      client-api:
+        condition: service_healthy
+    healthcheck:
+      <<: *healthcheck-timing
+      test: ["CMD", "python3", "-c", "import urllib.request as r, urllib.error as e\ntry: r.urlopen('http://127.0.0.1:8000/health', timeout=4)\nexcept e.HTTPError: pass"]
+    networks: [net]
+
+  ai:
+    build:
+      context: ./tender-scrapping-database/ai
+    image: tender-staging/ai:${STAGING_IMAGE_TAG:-staging}
+    logging: *default-logging
+    restart: unless-stopped
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+      AI_MODEL: ${STAGING_AI_MODEL:-llama3.1:8b}
+      AI_REQUEST_TIMEOUT_SECONDS: ${STAGING_AI_REQUEST_TIMEOUT_SECONDS:-600}
+      # Separate AI database (business profiles), as in production.
+      DATABASE_PATH: /data/ai.db
+      AI_SERVICE_API_KEY: *ai-key
+      CLIENT_API_URL: http://client-api:8001
+      TENDER_ML_URL: http://tender-ml:9004
+      CORS_ORIGINS: *cors
+    # No published port, as in production: only the AI agent calls it (http://ai:8002).
+    volumes:
+      - ai-data:/data
+    depends_on:
+      ollama:
+        condition: service_healthy
+    healthcheck:
+      <<: *healthcheck-timing
+      test: ["CMD", "python3", "-c", "import urllib.request as r, urllib.error as e\ntry: r.urlopen('http://127.0.0.1:8002/health', timeout=4)\nexcept e.HTTPError: pass"]
+    networks: [net]
+
+  # -------------------------------------------------------------------------
+  # cache-api (production runs it as "lelani-cache-api")
+  # -------------------------------------------------------------------------
+  cache-api:
+    build:
+      context: ./cache-api
+    image: tender-staging/cache-api:${STAGING_IMAGE_TAG:-staging}
+    logging: *default-logging
+    restart: unless-stopped
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      CLIENT_API_URL: http://client-api:8001
+      CACHE_TTL_LIST: "120"
+      CACHE_TTL_SEARCH: "60"
+      CACHE_TTL_DETAIL: "600"
+      # Its own Redis already isolates staging; the prefix also marks every key.
+      CACHE_KEY_PREFIX: staging
+      UPSTREAM_TIMEOUT: "30"
+      CORS_ORIGINS: *cors
+    ports:
+      - "${STAGING_CACHE_PORT:-18003}:8003"
+    depends_on:
+      redis:
+        condition: service_healthy
+      client-api:
+        condition: service_healthy
+    healthcheck:
+      <<: *healthcheck-timing
+      test: ["CMD", "python3", "-c", "import urllib.request as r, urllib.error as e\ntry: r.urlopen('http://127.0.0.1:8003/health', timeout=4)\nexcept e.HTTPError: pass"]
+    networks:
+      net:
+        aliases: [lelani-cache-api]
+
+  # -------------------------------------------------------------------------
+  # Accounts: Login API (jwt), Signup API, Notifications API (tender_apis)
+  # -------------------------------------------------------------------------
+  jwt-api:
+    build:
+      context: ./jwt
+    image: tender-staging/jwt-api:${STAGING_IMAGE_TAG:-staging}
+    logging: *default-logging
+    restart: unless-stopped
+    environment:
+      <<: *smtp
+      JWT_SECRET: *jwt-secret
+      SESSION_TIMEOUT_HOURS: ${STAGING_SESSION_TIMEOUT_HOURS:-2}
+      # Signs people in against the users the Signup API writes to the staging database.
+      DATABASE_PATH: /data/tenders.db
+      CORS_ORIGINS: *cors
+      NOTIFICATIONS_API_URL: http://tender-notifications-api:8000
+      INTERNAL_API_KEY: *internal-key
+    ports:
+      - "${STAGING_LOGIN_PORT:-18006}:8006"
+    volumes:
+      - sqlite-data:/data
+    depends_on:
+      client-api:
+        condition: service_healthy
+    healthcheck:
+      <<: *healthcheck-timing
+      test: ["CMD", "python3", "-c", "import urllib.request as r, urllib.error as e\ntry: r.urlopen('http://127.0.0.1:8006/health', timeout=4)\nexcept e.HTTPError: pass"]
+    networks: [net]
+
+  signup-api:
+    build:
+      context: ./Signup-api
+    image: tender-staging/signup-api:${STAGING_IMAGE_TAG:-staging}
+    logging: *default-logging
+    restart: unless-stopped
+    environment:
+      <<: *smtp
+      DATABASE_PATH: /data/tenders.db
+      CORS_ORIGINS: *cors
+      JWT_SECRET: *jwt-secret
+      JWT_ALGORITHM: HS256
+      # Must end in /verify.html (the signup site's verify page); otherwise the Signup API
+      # sends people to port 8008 of that host, which is production's signup site.
+      EMAIL_CONFIRMATION_URL: ${STAGING_EMAIL_CONFIRMATION_URL:-http://${USER_SERVER_IP}:${STAGING_SIGNUP_FRONTEND_PORT:-18008}/verify.html}
+      LOGIN_URL: ${STAGING_LOGIN_PAGE_URL:-http://${USER_SERVER_IP}:${STAGING_FRONTEND_PORT:-18009}/login.html}
+      VERIFICATION_TOKEN_EXPIRE_MINUTES: "30"
+      NOTIFICATIONS_API_URL: http://tender-notifications-api:8000
+      INTERNAL_API_KEY: *internal-key
+      AGENT_API_URL: http://tender-agent-api:9000
+      ACCOUNT_DELETION_KEY: *deletion-key
+    ports:
+      - "${STAGING_SIGNUP_PORT:-18007}:8000"
+    volumes:
+      - sqlite-data:/data
+    depends_on:
+      client-api:
+        condition: service_healthy
+    healthcheck:
+      <<: *healthcheck-timing
+      test: ["CMD", "python3", "-c", "import urllib.request as r, urllib.error as e\ntry: r.urlopen('http://127.0.0.1:8000/health', timeout=4)\nexcept e.HTTPError: pass"]
+    networks: [net]
+
+  tender-notifications-api:
+    build:
+      context: ./tender_apis
+    image: tender-staging/notifications-api:${STAGING_IMAGE_TAG:-staging}
+    logging: *default-logging
+    restart: unless-stopped
+    environment:
+      <<: *smtp
+      DATABASE_PATH: /data/tenders.db
+      CORS_ORIGINS: *cors
+      JWT_SECRET: *jwt-secret
+      JWT_ALGORITHM: HS256
+      INTERNAL_API_KEY: *internal-key
+      # Links in notification e-mails: the staging site and this API's public address.
+      APP_URL: http://${USER_SERVER_IP}:${STAGING_FRONTEND_PORT:-18009}
+      PUBLIC_API_URL: http://${USER_SERVER_IP}:${STAGING_NOTIFICATIONS_PORT:-19007}
+    ports:
+      - "${STAGING_NOTIFICATIONS_PORT:-19007}:8000"
+    volumes:
+      - sqlite-data:/data
+    depends_on:
+      client-api:
+        condition: service_healthy
+    healthcheck:
+      <<: *healthcheck-timing
+      test: ["CMD", "python3", "-c", "import urllib.request as r, urllib.error as e\ntry: r.urlopen('http://127.0.0.1:8000/health', timeout=4)\nexcept e.HTTPError: pass"]
+    networks: [net]
+
+  # -------------------------------------------------------------------------
+  # Matching: alerts-api, tender-ml
+  # -------------------------------------------------------------------------
+  alerts-api:
+    build:
+      context: ./alerts-api
+    image: tender-staging/alerts-api:${STAGING_IMAGE_TAG:-staging}
+    logging: *default-logging
+    restart: unless-stopped
+    environment:
+      DATABASE_PATH: /data/tenders.db
+      CORS_ORIGINS: *cors
+      JWT_SECRET: *jwt-secret
+      ALERT_SCAN_INTERVAL_SECONDS: ${STAGING_ALERT_SCAN_INTERVAL_SECONDS:-300}
+      AGENT_URL: http://tender-agent-api:9000
+      TENDER_ML_URL: http://tender-ml:9004
+    ports:
+      - "${STAGING_ALERTS_PORT:-19005}:9005"
+    volumes:
+      - sqlite-data:/data
+    depends_on:
+      client-api:
+        condition: service_healthy
+    healthcheck:
+      <<: *healthcheck-timing
+      test: ["CMD", "python3", "-c", "import urllib.request as r, urllib.error as e\ntry: r.urlopen('http://127.0.0.1:9005/health', timeout=4)\nexcept e.HTTPError: pass"]
+    networks: [net]
+
+  tender-ml:
+    build:
+      context: ./tender-ml
+    image: tender-staging/tender-ml:${STAGING_IMAGE_TAG:-staging}
+    logging: *default-logging
+    restart: unless-stopped
+    environment:
+      # Opened read-only by the code. Train with:
+      #   docker compose --env-file .env.staging -f compose.staging.yaml run --rm tender-ml python train.py
+      DATABASE_PATH: /data/tenders.db
+      MODEL_PATH: /models/category_model.joblib
+      REPORTS_DIR: /models/reports
+    # Only the other staging services need it; published on this machine only.
+    ports:
+      - "127.0.0.1:${STAGING_ML_PORT:-19004}:9004"
+    volumes:
+      - sqlite-data:/data
+      - ml-models:/models
+    depends_on:
+      client-api:
+        condition: service_healthy
+    healthcheck:
+      <<: *healthcheck-timing
+      test: ["CMD", "python3", "-c", "import urllib.request as r, urllib.error as e\ntry: r.urlopen('http://127.0.0.1:9004/health', timeout=4)\nexcept e.HTTPError: pass"]
+    networks: [net]
+
+  # -------------------------------------------------------------------------
+  # tender-ai-agent
+  # -------------------------------------------------------------------------
+  tender-agent-api:
+    build:
+      context: ./tender-ai-agent
+    image: tender-staging/tender-ai-agent:${STAGING_IMAGE_TAG:-staging}
+    logging: *default-logging
+    restart: unless-stopped
+    environment:
+      # A separate Azure key (or resource) for staging. Empty = chat answers degrade.
+      AZURE_AI_ENDPOINT: ${STAGING_AZURE_AI_ENDPOINT:-}
+      AZURE_AI_API_KEY: ${STAGING_AZURE_AI_API_KEY:-}
+      AZURE_AI_DEPLOYMENT: ${STAGING_AZURE_AI_DEPLOYMENT:-mistral-small-2503}
+      AZURE_AI_TEMPERATURE: "0"
+      AZURE_AI_VISION_DEPLOYMENT: ${STAGING_AZURE_AI_VISION_DEPLOYMENT:-}
+      EMBED_MODEL: ${STAGING_EMBED_MODEL:-text-embedding-3-small}
+      AZURE_EMBED_ENDPOINT: ${STAGING_AZURE_EMBED_ENDPOINT:-}
+      AZURE_EMBED_API_KEY: ${STAGING_AZURE_EMBED_API_KEY:-}
+      EMBED_TIMEOUT: "8"
+      LLM_TIMEOUT: "30"
+      CLIENT_API_URL: http://client-api:8001
+      AI_SERVICE_URL: http://ai:8002
+      ALERTS_API_URL: http://alerts-api:9005
+      TENDER_ML_URL: http://tender-ml:9004
+      LOGIN_API_URL: http://jwt-api:8006
+      REDIS_URL: redis://redis:6379/0
+      AI_SERVICE_API_KEY: *ai-key
+      ACCOUNT_DELETION_KEY: *deletion-key
+      AGENT_ADMIN_KEY: ${STAGING_AGENT_ADMIN_KEY:-}
+      SEMANTIC_CACHE_THRESHOLD: "0.95"
+      TENDER_SYNC_INTERVAL: ${STAGING_TENDER_SYNC_INTERVAL:-21600}
+      AGENT_DATA_DIR: /data
+      AGENT_MAX_ITERATIONS: "4"
+      AGENT_TIMEOUT_SECONDS: "45"
+      CORS_ORIGINS: *cors
+      # Tracing stays off, as in production (privacy policy).
+      LANGSMITH_TRACING: "false"
+      LANGCHAIN_TRACING_V2: "false"
+    ports:
+      - "${STAGING_AGENT_PORT:-19000}:9000"
+    volumes:
+      - agent-data:/data
+    depends_on:
+      redis:
+        condition: service_healthy
+      client-api:
+        condition: service_healthy
+      jwt-api:
+        condition: service_started
+    healthcheck:
+      <<: *healthcheck-timing
+      test: ["CMD", "python3", "-c", "import urllib.request as r, urllib.error as e\ntry: r.urlopen('http://127.0.0.1:9000/', timeout=4)\nexcept e.HTTPError: pass"]
+    networks:
+      net:
+        aliases: [agent-api]
+
+  # -------------------------------------------------------------------------
+  # Browser sites
+  # -------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+    image: tender-staging/frontend:${STAGING_IMAGE_TAG:-staging}
+    logging: *default-logging
+    restart: unless-stopped
+    environment:
+      # Read by docker-entrypoint.d/40-runtime-config.sh, which writes
+      # scripts/runtime-config.js so the pages call the staging APIs.
+      USER_SERVER_IP: "${USER_SERVER_IP:?USER_SERVER_IP is required - the staging server's IP address or host name (localhost on your own machine)}"
+      FRONTEND_SERVICE_PORTS: >-
+        scraper=${STAGING_SCRAPER_PORT:-18000},
+        client=${STAGING_CLIENT_PORT:-18001},
+        cache=${STAGING_CACHE_PORT:-18003},
+        login=${STAGING_LOGIN_PORT:-18006},
+        signup=${STAGING_SIGNUP_PORT:-18007},
+        loginFrontend=${STAGING_FRONTEND_PORT:-18009},
+        signupFrontend=${STAGING_SIGNUP_FRONTEND_PORT:-18008},
+        alerts=${STAGING_ALERTS_PORT:-19005},
+        notifications=${STAGING_NOTIFICATIONS_PORT:-19007},
+        aiAssistant=${STAGING_AI_FRONTEND_PORT:-19001},
+        aiAgent=${STAGING_AGENT_PORT:-19000},
+        tenderAgent=${STAGING_AGENT_PORT:-19000},
+        overview=${STAGING_OVERVIEW_PORT:-18005},
+        businessProfile=${STAGING_BUSINESS_PROFILE_PORT:-19002},
+        applicationTracker=${STAGING_TRACKER_PORT:-19006},
+        savedTenders=${STAGING_SAVED_TENDERS_PORT:-19008},
+        tenderSearch=${STAGING_TENDER_SEARCH_PORT:-19009}
+    ports:
+      - "${STAGING_FRONTEND_PORT:-18009}:80"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks: [net]
+
+  tender-ai-frontend:
+    build:
+      context: ./tender-ai-frontend
+    image: tender-staging/tender-ai-frontend:${STAGING_IMAGE_TAG:-staging}
+    logging: *default-logging
+    restart: unless-stopped
+    environment:
+      # Read by docker-entrypoint.d/40-runtime-config.sh (replaces the build-time
+      # __AGENT_URL__ / __LOGIN_URL__ injection used in production).
+      AGENT_URL: http://${USER_SERVER_IP}:${STAGING_AGENT_PORT:-19000}
+      LOGIN_URL: http://${USER_SERVER_IP}:${STAGING_FRONTEND_PORT:-18009}/login.html
+      MAIN_SITE_PORT: ${STAGING_FRONTEND_PORT:-18009}
+    ports:
+      - "${STAGING_AI_FRONTEND_PORT:-19001}:80"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks: [net]
+
+# Created by Compose as tender-staging_<name>. Never "external", so they can never be
+# production's volumes. Removing staging data: docker compose ... down -v (staging only).
+volumes:
+  sqlite-data:
+  ai-data:
+  agent-data:
+  ml-models:
+  redis-data:
+  ollama-data:
+
+networks:
+  net: {}

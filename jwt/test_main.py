@@ -57,7 +57,9 @@ def test_protected_route_rejects_expired_token():
     from datetime import datetime, timedelta, UTC
     import jwt
 
-    secret = os.getenv("JWT_SECRET") or "your_super_secret_development_key"
+    import main
+
+    secret = main.SECRET_KEY
     expired_token = jwt.encode(
         {"sub": "expired-user", "exp": datetime.now(UTC) - timedelta(minutes=1)},
         secret,

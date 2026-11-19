@@ -1,0 +1,136 @@
+# Staging: build, test, then deploy the whole stack (compose.staging.yaml) to the
+# staging runner. Only a push to the staging branch (or a manual run on it) deploys.
+#
+# Needs (see STAGING_SETUP.md):
+#   - a self-hosted runner with the labels "self-hosted" and "staging" (Docker + Compose v2)
+#   - a GitHub Environment named "staging" holding the STAGING_* secrets and variables
+#     below. Staging never reads a production secret: every name here starts with STAGING_.
+name: Deploy staging
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+jobs:
+  build-and-test:
+    uses: ./.github/workflows/build-and-test.yml
+    with:
+      suite: full
+
+  deploy:
+    name: Deploy to staging
+    needs: build-and-test
+    # A manual run from another branch must not put that branch on staging.
+    if: github.ref == 'refs/heads/staging'
+    runs-on: [self-hosted, staging]
+    environment:
+      name: staging
+      url: ${{ vars.STAGING_SITE_URL }}
+    env:
+      COMPOSE_FILE: compose.staging.yaml
+      COMPOSE_PROJECT_NAME: tender-staging
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Write staging settings (.env.staging, readable by the runner user only)
+        env:
+          USER_SERVER_IP: ${{ vars.USER_SERVER_IP }}
+          STAGING_JWT_SECRET: ${{ secrets.STAGING_JWT_SECRET }}
+          STAGING_INTERNAL_API_KEY: ${{ secrets.STAGING_INTERNAL_API_KEY }}
+          STAGING_ACCOUNT_DELETION_KEY: ${{ secrets.STAGING_ACCOUNT_DELETION_KEY }}
+          STAGING_AI_SERVICE_API_KEY: ${{ secrets.STAGING_AI_SERVICE_API_KEY }}
+          STAGING_SCRAPER_API_KEY: ${{ secrets.STAGING_SCRAPER_API_KEY }}
+          STAGING_AGENT_ADMIN_KEY: ${{ secrets.STAGING_AGENT_ADMIN_KEY }}
+          STAGING_AZURE_AI_ENDPOINT: ${{ secrets.STAGING_AZURE_AI_ENDPOINT }}
+          STAGING_AZURE_AI_API_KEY: ${{ secrets.STAGING_AZURE_AI_API_KEY }}
+          STAGING_AZURE_EMBED_ENDPOINT: ${{ secrets.STAGING_AZURE_EMBED_ENDPOINT }}
+          STAGING_AZURE_EMBED_API_KEY: ${{ secrets.STAGING_AZURE_EMBED_API_KEY }}
+          STAGING_EMAIL_FROM: ${{ secrets.STAGING_EMAIL_FROM }}
+          STAGING_SMTP_HOST: ${{ secrets.STAGING_SMTP_HOST }}
+          STAGING_SMTP_USERNAME: ${{ secrets.STAGING_SMTP_USERNAME }}
+          STAGING_SMTP_PASSWORD: ${{ secrets.STAGING_SMTP_PASSWORD }}
+          # Non-secret settings (ports, model names, ...): one STAGING_NAME=value per line.
+          STAGING_EXTRA_SETTINGS: ${{ vars.STAGING_EXTRA_SETTINGS }}
+        run: |
+          set -euo pipefail
+          umask 077
+          : > .env.staging
+          for name in USER_SERVER_IP STAGING_JWT_SECRET STAGING_INTERNAL_API_KEY STAGING_ACCOUNT_DELETION_KEY \
+                      STAGING_AI_SERVICE_API_KEY STAGING_SCRAPER_API_KEY STAGING_AGENT_ADMIN_KEY \
+                      STAGING_AZURE_AI_ENDPOINT STAGING_AZURE_AI_API_KEY STAGING_AZURE_EMBED_ENDPOINT \
+                      STAGING_AZURE_EMBED_API_KEY STAGING_EMAIL_FROM STAGING_SMTP_HOST STAGING_SMTP_USERNAME \
+                      STAGING_SMTP_PASSWORD; do
+            if [ -n "${!name:-}" ]; then
+              printf '%s=%s\n' "$name" "${!name}" >> .env.staging
+            fi
+          done
+          # Only STAGING_* lines are accepted from the extra settings.
+          printf '%s\n' "${STAGING_EXTRA_SETTINGS:-}" | tr -d '\r' | grep -E '^STAGING_[A-Z0-9_]+=' >> .env.staging || true
+
+      - name: Check settings and isolation from production
+        env:
+          # Optional: space-separated absolute paths of production .env files on this server.
+          # Staging then fails if any staging secret equals a production value.
+          PRODUCTION_ENV_FILES: ${{ vars.STAGING_COMPARE_PRODUCTION_ENV_FILES }}
+        run: |
+          set -euo pipefail
+          mounts=() files=()
+          i=0
+          for file in ${PRODUCTION_ENV_FILES:-}; do
+            mounts+=(-v "$file:/production/$i.env:ro")
+            files+=("/production/$i.env")
+            i=$((i + 1))
+          done
+          # Runs in a throwaway container, so the runner needs no Python.
+          docker run --rm -v "$PWD:/src:ro" "${mounts[@]}" -w /src python:3.12-slim sh -c \
+            'pip install --quiet --disable-pip-version-check pyyaml==6.0.2 && python scripts/staging/check_staging.py --env-file .env.staging "$@"' \
+            check ${files[@]:+--production-env "${files[@]}"}
+          docker compose --env-file .env.staging config --quiet
+
+      - name: Build and start the staging stack
+        run: docker compose --env-file .env.staging up -d --build --remove-orphans --wait --wait-timeout 900
+
+      - name: Make sure the Ollama model is in the staging Ollama volume
+        continue-on-error: true
+        run: |
+          model="$(grep -E '^STAGING_AI_MODEL=' .env.staging | tail -n 1 | cut -d= -f2-)"
+          docker compose --env-file .env.staging exec -T ollama ollama pull "${model:-llama3.1:8b}"
+
+      - name: Train the tender category model on staging data
+        continue-on-error: true
+        run: |
+          set +e
+          docker compose --env-file .env.staging run --rm tender-ml python train.py
+          code=$?
+          if [ "$code" -eq 0 ]; then
+            docker compose --env-file .env.staging restart tender-ml
+          elif [ "$code" -ne 2 ]; then
+            echo "::warning::tender-ml training failed (exit $code). The staging database may not have enough tenders yet."
+          fi
+
+      - name: Smoke test
+        run: bash scripts/staging/smoke_test.sh .env.staging
+
+      - name: Service logs
+        if: failure()
+        run: docker compose --env-file .env.staging logs --tail 100
+
+      - name: Summary
+        if: success()
+        run: |
+          {
+            echo "### Staging deployed"
+            echo ""
+            echo "Commit: \`${GITHUB_SHA}\`"
+            echo ""
+            docker compose --env-file .env.staging ps --format 'table {{.Service}}\t{{.Status}}\t{{.Ports}}'
+          } >> "$GITHUB_STEP_SUMMARY"

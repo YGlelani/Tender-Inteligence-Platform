@@ -1,0 +1,133 @@
+# Production: verify the release went through staging, build and test it, wait for a
+# required reviewer to approve the "production" environment, then deploy.
+#
+# Nothing here is triggered by the staging branch: production only deploys from a push
+# to prod (normally a merged staging -> prod pull request) or a manual run on prod.
+#
+# Needs (see DEPLOYMENT.md):
+#   - a GitHub Environment named "production" with Required reviewers (the manual approval)
+#     and deployment branches limited to "prod", holding the production secrets below
+#   - a self-hosted runner on the production server with the labels "self-hosted" and "production"
+#   - repository variable PRODUCTION_DEPLOY_ENABLED=true and PRODUCTION_SERVICES (which
+#     services to deploy). Until then the per-service repositories keep deploying
+#     production and this workflow stops after the tests.
+name: Deploy production
+
+on:
+  push:
+    branches: [prod]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  promotion-check:
+    name: Release came through staging
+    if: github.ref == 'refs/heads/prod'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Every change on prod must already be on staging
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin staging
+          # Merge commits are allowed (staging -> prod pull requests); any other commit
+          # that is on prod but not on staging was never tested on staging.
+          untested="$(git rev-list --no-merges origin/staging..HEAD)"
+          if [ -n "$untested" ]; then
+            echo "::error::These commits are on prod but not on staging. Merge them into staging, test there, then promote:"
+            git log --oneline --no-merges origin/staging..HEAD
+            exit 1
+          fi
+          echo "OK: prod contains only changes that are on staging."
+
+  build-and-test:
+    needs: promotion-check
+    uses: ./.github/workflows/build-and-test.yml
+    with:
+      suite: full
+
+  deployment-switched-off:
+    name: Production deployment switched off
+    needs: build-and-test
+    if: vars.PRODUCTION_DEPLOY_ENABLED != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "::notice::Tests passed. Deployment from this repository is switched off (repository variable PRODUCTION_DEPLOY_ENABLED is not 'true'); production is still deployed by the per-service repositories. See DEPLOYMENT.md."
+
+  deploy:
+    name: Deploy to production
+    needs: build-and-test
+    if: vars.PRODUCTION_DEPLOY_ENABLED == 'true'
+    runs-on: [self-hosted, production]
+    # Required reviewers on this environment = the manual approval before anything runs.
+    environment:
+      name: production
+      url: ${{ vars.PRODUCTION_SITE_URL }}
+    env:
+      # Production secrets (the "production" environment). Staging uses STAGING_* names only.
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      JWT_ALGORITHM: ${{ secrets.JWT_ALGORITHM }}
+      INTERNAL_API_KEY: ${{ secrets.INTERNAL_API_KEY }}
+      ACCOUNT_DELETION_KEY: ${{ secrets.ACCOUNT_DELETION_KEY }}
+      AI_SERVICE_API_KEY: ${{ secrets.AI_SERVICE_API_KEY }}
+      SCRAPER_API_KEY: ${{ secrets.SCRAPER_API_KEY }}
+      AGENT_ADMIN_KEY: ${{ secrets.AGENT_ADMIN_KEY }}
+      ETENDERS_BASE_URL: ${{ secrets.ETENDERS_BASE_URL }}
+      AI_MODEL: ${{ secrets.AI_MODEL }}
+      AI_REQUEST_TIMEOUT_SECONDS: ${{ secrets.AI_REQUEST_TIMEOUT_SECONDS }}
+      AZURE_AI_ENDPOINT: ${{ secrets.AZURE_AI_ENDPOINT }}
+      AZURE_AI_API_KEY: ${{ secrets.AZURE_AI_API_KEY }}
+      AZURE_AI_DEPLOYMENT: ${{ secrets.AZURE_AI_DEPLOYMENT }}
+      CLIENT_API_URL: ${{ secrets.CLIENT_API_URL }}
+      REDIS_URL: ${{ secrets.REDIS_URL }}
+      EMAIL_CONFIRMATION_URL: ${{ secrets.EMAIL_CONFIRMATION_URL }}
+      LOGIN_URL: ${{ secrets.LOGIN_URL }}
+      AGENT_URL: ${{ secrets.AGENT_URL }}
+      AGENT_API_URL: ${{ secrets.AGENT_API_URL }}
+      APP_URL: ${{ secrets.APP_URL }}
+      NOTIFICATIONS_PUBLIC_URL: ${{ secrets.NOTIFICATIONS_PUBLIC_URL }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+      SMTP_HOST: ${{ secrets.SMTP_HOST }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      SMTP_USE_TLS: ${{ secrets.SMTP_USE_TLS }}
+      VERIFICATION_TOKEN_EXPIRE_MINUTES: ${{ secrets.VERIFICATION_TOKEN_EXPIRE_MINUTES }}
+      SESSION_TIMEOUT_HOURS: ${{ secrets.SESSION_TIMEOUT_HOURS }}
+      USER_SERVER_PORT: ${{ vars.USER_SERVER_PORT }}
+      # Compose project names of the existing production containers (`docker compose ls`).
+      PROJECT_LOGIN_API: ${{ vars.PROJECT_LOGIN_API }}
+      PROJECT_SIGNUP_API: ${{ vars.PROJECT_SIGNUP_API }}
+      PROJECT_NOTIFICATIONS_API: ${{ vars.PROJECT_NOTIFICATIONS_API }}
+      PROJECT_ALERTS_API: ${{ vars.PROJECT_ALERTS_API }}
+      PROJECT_TENDER_ML: ${{ vars.PROJECT_TENDER_ML }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy the approved services
+        env:
+          PRODUCTION_SERVICES: ${{ vars.PRODUCTION_SERVICES }}
+        run: |
+          set -euo pipefail
+          # shellcheck disable=SC2086  # the variable is a space-separated list
+          bash scripts/deploy/deploy_production.sh ${PRODUCTION_SERVICES}
+
+      - name: Summary
+        run: |
+          {
+            echo "### Production deployed"
+            echo ""
+            echo "Commit: \`${GITHUB_SHA}\`"
+            echo "Services: ${{ vars.PRODUCTION_SERVICES }}"
+          } >> "$GITHUB_STEP_SUMMARY"

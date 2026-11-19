@@ -1,0 +1,24 @@
+# Environment files hold secrets and stay on the machine that uses them.
+# Only the *.example templates are committed.
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Python caches (jwt/__pycache__ is still tracked from the initial import; see DEPLOYMENT.md)
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local SQLite copies must never be committed (they contain user accounts)
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Local tooling
+.claude/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

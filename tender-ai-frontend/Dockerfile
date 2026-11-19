@@ -12,6 +12,12 @@ COPY scripts /usr/share/nginx/html/scripts
 COPY icons /usr/share/nginx/html/icons
 COPY fonts /usr/share/nginx/html/fonts
 
+# Writes scripts/runtime-config.js at start-up. Production sets no AGENT_URL,
+# LOGIN_URL or MAIN_SITE_PORT, so its build-time addresses stay in force; staging
+# sets them (compose.staging.yaml).
+COPY docker-entrypoint.d/40-runtime-config.sh /docker-entrypoint.d/40-runtime-config.sh
+RUN sed -i 's/\r$//' /docker-entrypoint.d/40-runtime-config.sh && chmod 755 /docker-entrypoint.d/40-runtime-config.sh
+
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]

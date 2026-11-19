@@ -5,8 +5,8 @@
 .DS_Store
 .vscode/
 
-# Generated at runtime by the container entrypoint; do not commit
-runtime-config.js
+# scripts/runtime-config.js IS committed: it holds the production defaults (no overrides)
+# and the container replaces it at start-up (docker-entrypoint.d/40-runtime-config.sh).
 
 # Environment example file is kept out of this repository
 .env.example

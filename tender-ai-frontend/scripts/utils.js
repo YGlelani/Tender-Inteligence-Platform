@@ -15,8 +15,10 @@ function parseMarkdown(text) {
     html = html.replace(/<li>(.*)<\/li>/g, '<ul><li>$1</li></ul>');
     return html.replace(/\n$/gim, '<br />');
 }
-// The main Tender Scrapper site runs on the same server as this AI workspace, on port 8009.
+// The main Tender Scrapper site runs on the same server as this AI workspace, on port 8009
+// (staging sets another port in scripts/runtime-config.js as window.APP_CONFIG.MAIN_SITE_PORT).
 // Business documents are uploaded there only, on its Business Documents page (onboarding.html).
 function mainSiteUrl(location, page = "dashboard.html") {
-    return `${location.protocol}//${location.hostname}:8009/${page}`;
+    const port = (window.APP_CONFIG && window.APP_CONFIG.MAIN_SITE_PORT) || 8009;
+    return `${location.protocol}//${location.hostname}:${port}/${page}`;
 }

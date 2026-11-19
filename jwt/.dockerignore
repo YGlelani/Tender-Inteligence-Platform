@@ -1,0 +1,17 @@
+# Secrets never enter the image. The container still gets them: compose.yml passes the
+# same .env through env_file, and compose.staging.yaml passes staging values directly.
+.env
+.env.*
+
+# Version control, CI and local caches
+.git/
+.github/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Local databases (they hold user accounts)
+*.db
+*.db-*

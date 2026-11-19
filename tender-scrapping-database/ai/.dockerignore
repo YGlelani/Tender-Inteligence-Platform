@@ -1,0 +1,14 @@
+# Secrets never enter the image; the AI service gets its settings from Compose.
+.env
+.env.*
+
+# Local caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Local databases (business profiles)
+*.db
+*.db-*

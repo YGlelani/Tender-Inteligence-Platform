@@ -27,4 +27,10 @@ COPY scripts /usr/share/nginx/html/scripts
 # Licence notices for the icons and typeface, readable at /third-party-notices.txt.
 COPY THIRD_PARTY_NOTICES.md /usr/share/nginx/html/third-party-notices.txt
 
+# Writes scripts/runtime-config.js at start-up. Without USER_SERVER_IP or
+# FRONTEND_SERVICE_PORTS (production) the pages keep their production addresses;
+# staging sets both (compose.staging.yaml).
+COPY docker-entrypoint.d/40-runtime-config.sh /docker-entrypoint.d/40-runtime-config.sh
+RUN sed -i 's/\r$//' /docker-entrypoint.d/40-runtime-config.sh && chmod 755 /docker-entrypoint.d/40-runtime-config.sh
+
 EXPOSE 80

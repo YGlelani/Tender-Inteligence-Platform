@@ -1,0 +1,30 @@
+# Continuous integration for the branches that do not deploy.
+#
+#   dev      push -> basic suite (static checks, unit tests, frontend smoke tests, image builds)
+#   testing  push -> full suite  (basic + dependency audit + integration test of the whole stack)
+#   main     push -> full suite  (stable source; nothing deploys from main)
+#   pull requests into any of the five branches -> basic into dev, full into the others
+#
+# staging and prod run the same reusable suite from deploy-staging.yml / deploy-production.yml
+# before they deploy, so they are not listed here.
+name: CI
+
+on:
+  push:
+    branches: [dev, testing, main]
+  pull_request:
+    branches: [dev, testing, staging, prod, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    uses: ./.github/workflows/build-and-test.yml
+    with:
+      suite: ${{ (github.base_ref || github.ref_name) == 'dev' && 'basic' || 'full' }}

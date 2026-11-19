@@ -3,7 +3,7 @@
 (function () {
     const LOGIN_API = typeof API_URL === "string"
         ? API_URL
-        : `http://${window.location.hostname}:8006`;
+        : `http://${window.location.hostname}:${(window.APP_CONFIG && window.APP_CONFIG.PORTS && window.APP_CONFIG.PORTS.login) || 8006}`;
 
     let resetEmail = "";
 

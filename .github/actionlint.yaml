@@ -1,0 +1,5 @@
+# Labels of the self-hosted runners the deploy workflows use (for the actionlint linter).
+self-hosted-runner:
+  labels:
+    - staging
+    - production

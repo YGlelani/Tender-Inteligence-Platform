@@ -254,7 +254,10 @@ function setupThemeToggle() {
 function endSignInOnServer() {
     const token = localStorage.getItem("access_token");
     if (!token) return Promise.resolve();
-    const request = fetch(`${window.location.protocol}//${window.location.hostname}:8006/logout`, {
+    // Staging publishes the Login API on another port (scripts/runtime-config.js).
+    const loginHost = window.APP_CONFIG?.USER_SERVER_IP || window.location.hostname;
+    const loginPort = window.APP_CONFIG?.PORTS?.login || 8006;
+    const request = fetch(`${window.location.protocol}//${loginHost}:${loginPort}/logout`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         keepalive: true
