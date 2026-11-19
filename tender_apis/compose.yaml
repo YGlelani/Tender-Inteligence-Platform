@@ -1,0 +1,33 @@
+# Every container keeps at most 3 x 10 MB of logs; older entries are overwritten.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  tender-notifications-api:
+    logging: *default-logging
+    build: .
+    container_name: tender-notifications-api
+    ports:
+      - "9007:8000"
+    env_file:
+      - .env
+    environment:
+      DATABASE_PATH: /data/tenders.db
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://129.151.181.87:8009}
+    volumes:
+      - tender-sqlite-data:/data
+    restart: unless-stopped
+    networks:
+      - tender-scrapping-net
+
+volumes:
+  tender-sqlite-data:
+    external: true
+    name: tender-scrapping_tender-sqlite-data
+
+networks:
+  tender-scrapping-net:
+    external: true

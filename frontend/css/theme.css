@@ -1,0 +1,1447 @@
+/* Central theme layer: shared application theme and component states. */
+
+/* SHARED DARK/LIGHT THEME */
+.topbar-theme-toggle {
+    flex: 0 0 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #737b88;
+    cursor: pointer;
+    transition: color .18s ease, transform .18s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.topbar-theme-toggle:hover {
+    color: #334155;
+    transform: rotate(-8deg);
+}
+
+.topbar-theme-toggle:focus-visible {
+    outline: 2px solid #94a3b8;
+    outline-offset: 3px;
+}
+
+.theme-toggle-icon {
+    display: block;
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.65;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+html[data-theme="dark"] {
+    color-scheme: dark;
+    --theme-page: #111827;
+    --theme-surface: #1b2433;
+    --theme-surface-soft: #202b3b;
+    --theme-border: #354154;
+    --theme-text: #e5eaf2;
+    --theme-muted: #a4afc0;
+    --theme-input: #131c2a;
+}
+
+html[data-theme="light"] {
+    color-scheme: light;
+}
+
+html[data-theme="dark"] body,
+html[data-theme="dark"] .main-content {
+    background: var(--theme-page);
+    color: var(--theme-text);
+}
+
+html[data-theme="dark"] .app-topbar {
+    background: rgba(20, 29, 43, .96);
+    border-bottom-color: var(--theme-border);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, .16);
+}
+
+html[data-theme="dark"] .topbar-menu-toggle,
+html[data-theme="dark"] .topbar-icon-link,
+html[data-theme="dark"] .topbar-username,
+html[data-theme="dark"] .topbar-user {
+    color: #c1cad8;
+}
+
+html[data-theme="dark"] .topbar-theme-toggle {
+    color: #cbd5e1;
+}
+
+html[data-theme="dark"] .topbar-theme-toggle:hover {
+    color: #f8fafc;
+}
+
+html[data-theme="dark"] .topbar-notification-dot {
+    border-color: #141d2b;
+}
+
+html[data-theme="dark"] .page-header,
+html[data-theme="dark"] .overview-welcome,
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .panel,
+html[data-theme="dark"] .stat-card,
+html[data-theme="dark"] .tender-card,
+html[data-theme="dark"] .saved-tender-card,
+html[data-theme="dark"] .alert-card,
+html[data-theme="dark"] .profile-card,
+html[data-theme="dark"] .content-card,
+html[data-theme="dark"] .table-container,
+html[data-theme="dark"] .empty-state,
+html[data-theme="dark"] .detail-card,
+html[data-theme="dark"] .detail-section,
+html[data-theme="dark"] .profile-account-card,
+html[data-theme="dark"] .cookie-consent-content {
+    background-color: var(--theme-surface);
+    color: var(--theme-text);
+    border-color: var(--theme-border);
+}
+
+html[data-theme="dark"] h1,
+html[data-theme="dark"] h2,
+html[data-theme="dark"] h3,
+html[data-theme="dark"] h4,
+html[data-theme="dark"] p,
+html[data-theme="dark"] label,
+html[data-theme="dark"] .page-title,
+html[data-theme="dark"] .card-value,
+html[data-theme="dark"] .card-header,
+html[data-theme="dark"] .tender-title,
+html[data-theme="dark"] .detail-title,
+html[data-theme="dark"] .detail-card-value,
+html[data-theme="dark"] .detail-section-title,
+html[data-theme="dark"] .recent-tender-title,
+html[data-theme="dark"] .profile-intro h2,
+html[data-theme="dark"] .profile-account-info strong,
+html[data-theme="dark"] th,
+html[data-theme="dark"] td {
+    color: var(--theme-text);
+}
+
+html[data-theme="dark"] .page-subtitle,
+html[data-theme="dark"] .muted,
+html[data-theme="dark"] small,
+html[data-theme="dark"] .detail-description,
+html[data-theme="dark"] .detail-card-label,
+html[data-theme="dark"] .tender-meta,
+html[data-theme="dark"] .tender-number,
+html[data-theme="dark"] .recent-tender-org,
+html[data-theme="dark"] .profile-intro p,
+html[data-theme="dark"] .profile-helper,
+html[data-theme="dark"] .profile-account-label,
+html[data-theme="dark"] .profile-account-info > span:last-child,
+html[data-theme="dark"] .cookie-consent-description {
+    color: var(--theme-muted);
+}
+
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] .feed-search,
+html[data-theme="dark"] #feedPageSize,
+html[data-theme="dark"] .profile-field input,
+html[data-theme="dark"] .profile-field select,
+html[data-theme="dark"] .btn-secondary,
+html[data-theme="dark"] .page-btn,
+html[data-theme="dark"] .tender-open-btn,
+html[data-theme="dark"] .recent-open-btn {
+    background-color: var(--theme-input);
+    color: var(--theme-text);
+    border-color: var(--theme-border);
+}
+
+html[data-theme="dark"] .feed-search input {
+    background: transparent;
+}
+
+html[data-theme="dark"] .recent-tender,
+html[data-theme="dark"] .doc-item,
+html[data-theme="dark"] .service-grid > div,
+html[data-theme="dark"] .cookie-consent-details-panel,
+html[data-theme="dark"] .state-msg {
+    background-color: var(--theme-surface-soft);
+    color: var(--theme-text);
+    border-color: var(--theme-border);
+}
+
+html[data-theme="dark"] .tender-card-foot,
+html[data-theme="dark"] .recent-tender,
+html[data-theme="dark"] .detail-section,
+html[data-theme="dark"] table,
+html[data-theme="dark"] tr,
+html[data-theme="dark"] td,
+html[data-theme="dark"] th {
+    border-color: var(--theme-border);
+}
+
+html[data-theme="dark"] .tender-meta strong,
+html[data-theme="dark"] .doc-name,
+html[data-theme="dark"] .cookie-consent-content h2,
+html[data-theme="dark"] .cookie-consent-detail-row {
+    color: var(--theme-text);
+}
+
+html[data-theme="dark"] .topbar-search {
+    background: var(--theme-input);
+    border-color: var(--theme-border);
+}
+
+html[data-theme="dark"] .topbar-search input {
+    color: var(--theme-text);
+}
+
+html[data-theme="dark"] .topbar-search input::placeholder {
+    color: #8491a5;
+}
+
+html[data-theme="dark"] .live-data-badge {
+    background: #12342f;
+    border-color: #28534b;
+    color: #8ee5c5;
+}
+
+html[data-theme="dark"] .tender-status {
+    background: #2b3150;
+    color: #c7d2fe;
+}
+
+html[data-theme="dark"] .tender-status.open,
+html[data-theme="dark"] .tender-status.active,
+html[data-theme="dark"] .tender-status.published {
+    background: #12372f;
+    color: #86efc7;
+}
+
+html[data-theme="dark"] .tender-status.closed,
+html[data-theme="dark"] .tender-status.cancelled,
+html[data-theme="dark"] .tender-status.expired {
+    background: #44252e;
+    color: #fda4af;
+}
+
+html[data-theme="dark"] .mobile-menu-button {
+    background: var(--theme-surface);
+    color: var(--theme-text);
+    border-color: var(--theme-border);
+}
+
+@media (max-width: 650px) {
+    .topbar-theme-toggle {
+        width: 34px;
+        height: 36px;
+        flex-basis: 34px;
+    }
+
+    .theme-toggle-icon {
+        width: 21px;
+        height: 21px;
+    }
+}
+
+/* PROJECT-WIDE THEME FOUNDATION
+   Shared selectors also cover new feature pages that use common UI patterns. */
+:root {
+    --app-page-bg: #f4f6f8;
+    --app-surface: #ffffff;
+    --app-surface-raised: #f8fafc;
+    --app-border: #e5e7eb;
+    --app-text: #111827;
+    --app-muted: #64748b;
+    --app-field-bg: #ffffff;
+    --app-link: #4338ca;
+}
+
+html[data-theme="dark"] {
+    color-scheme: dark;
+    --app-page-bg: #111827;
+    --app-surface: #1b2433;
+    --app-surface-raised: #202b3b;
+    --app-border: #354154;
+    --app-text: #e5eaf2;
+    --app-muted: #a4afc0;
+    --app-field-bg: #131c2a;
+    --app-link: #a9caff;
+}
+
+html[data-theme="light"] {
+    color-scheme: light;
+}
+
+html[data-theme="dark"] body,
+html[data-theme="dark"] main,
+html[data-theme="dark"] .main-content,
+html[data-theme="dark"] .page-content,
+html[data-theme="dark"] .content-wrapper,
+html[data-theme="dark"] .app-content {
+    background-color: var(--app-page-bg);
+    color: var(--app-text);
+}
+
+html[data-theme="dark"] :is(
+    .card, [class*="-card"], [class$="Card"],
+    .panel, [class*="-panel"], [class$="Panel"],
+    .section-card, [class*="-section-card"],
+    .table-container, .table-wrapper,
+    .empty-state, .content-box, .content-section,
+    .modal-content, .dropdown-menu, .popover-content,
+    .filter-panel, .filter-section, .form-container,
+    .overview-welcome, .overview-kpi, .overview-panel,
+    .tender-card, .detail-card, .detail-section,
+    .profile-account-card, .profile-card,
+    .alert-card, .saved-tender-card,
+    .recent-tender, .doc-item
+) {
+    background-color: var(--app-surface);
+    color: var(--app-text);
+    border-color: var(--app-border);
+}
+
+html[data-theme="dark"] :is(
+    h1, h2, h3, h4, h5, h6, p, label, legend,
+    th, td, dt, dd, caption,
+    .page-title, .section-title, .card-title,
+    .card-header, .card-value, .tender-title,
+    .detail-title, .detail-card-value,
+    .overview-welcome h1, .overview-kpi strong,
+    .overview-panel-heading h2, .overview-chart-summary strong,
+    .profile-account-info strong
+) {
+    color: var(--app-text);
+}
+
+html[data-theme="dark"] :is(
+    small, .muted, .text-muted, .subtitle, .page-subtitle,
+    .help-text, .form-text, .description, .meta,
+    .tender-meta, .detail-description, .detail-card-label,
+    .overview-welcome p, .overview-panel-heading p,
+    .overview-kpi-top, .overview-kpi p
+) {
+    color: var(--app-muted);
+}
+
+html[data-theme="dark"] :is(
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    select, textarea, .form-control, .form-select,
+    .search-input, .filter-input
+) {
+    background-color: var(--app-field-bg);
+    color: var(--app-text);
+    border-color: var(--app-border);
+}
+
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+    color: #8491a5;
+}
+
+html[data-theme="dark"] :is(
+    a:not(.nav-item):not(.profile-link):not(.topbar-user),
+    .link, .card-link, .back-link, .doc-open
+) {
+    color: var(--app-link);
+}
+
+html[data-theme="dark"] :is(
+    table, th, td, tr, hr, fieldset,
+    .divider, .card-divider, .section-divider
+) {
+    border-color: var(--app-border);
+}
+
+html[data-theme="dark"] :is(
+    .table-striped tbody tr:nth-child(odd),
+    .list-group-item, .list-item, .feed-search,
+    .recent-tender, .doc-item, .filter-chip,
+    .pagination, .pagination button
+) {
+    background-color: var(--app-surface-raised);
+    color: var(--app-text);
+    border-color: var(--app-border);
+}
+
+html[data-theme="dark"] :is(
+    button.btn-secondary, .btn-secondary,
+    button.button-secondary, .button-secondary,
+    .page-btn, .tender-open-btn, .recent-open-btn
+) {
+    background-color: var(--app-surface-raised);
+    color: var(--app-text);
+    border-color: var(--app-border);
+}
+
+html[data-theme="dark"] :is(
+    .app-topbar, .topbar, header.app-header, .page-header
+) {
+    border-color: var(--app-border);
+}
+
+html[data-theme="dark"] .sidebar {
+    background: linear-gradient(180deg, #111d35 0%, #0b1428 100%);
+    color: #f8fafc;
+}
+
+html[data-theme="dark"] .topbar-notification-dot {
+    background: #ef4444;
+}
+
+html[data-theme="dark"] :is(
+    .overview-scrape-highlight, .overview-scrape-details > div,
+    .overview-range, .overview-chart-panel, .overview-volume-panel
+) {
+    background-color: var(--app-surface-raised);
+    color: var(--app-text);
+    border-color: var(--app-border);
+}
+
+html[data-theme="dark"] :is(
+    .overview-scrape-details strong, .overview-services strong,
+    .overview-scrape-highlight strong, .overview-chart-summary strong
+) {
+    color: var(--app-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .topbar-theme-toggle {
+        transition: none;
+    }
+}
+
+/* Final shared theme overrides: keep all existing and future shared components readable. */
+html[data-theme="dark"] body,
+html[data-theme="dark"] body .main-content,
+html[data-theme="dark"] body main {
+    background-color: #111827;
+    color: #e5eaf2;
+}
+html[data-theme="dark"] body :is(
+    .card, [class*="-card"], [class$="Card"], .panel, [class*="-panel"],
+    .content-section, .content-box, .table-container, .table-wrapper,
+    .empty-state, [class*="empty-state"], .form-container, .filter-panel,
+    .profile-alert-card, .alert-empty-state, .alert-matches-card,
+    .alert-notifications-card, .profile-alert-how-card
+) {
+    background-color: #1b2433;
+    color: #e5eaf2;
+    border-color: #354154;
+}
+html[data-theme="dark"] body :is(
+    .saved-summary, .saved-tender-list, .saved-state, .saved-message,
+    .ts-search-panel, .ts-state-card, .ts-advanced-filters,
+    .ts-results-section, .ts-results-toolbar, .ts-results-grid,
+    .profile-alert-step, .profile-alert-summary, .alert-empty-state
+) {
+    background-color: #1b2433;
+    color: #e5eaf2;
+    border-color: #354154;
+}
+html[data-theme="dark"] body :is(
+    .page-title, .page-subtitle, .saved-eyebrow, .saved-summary strong,
+    .ts-filter-caption, .ts-results-toolbar, .profile-alert-step,
+    .card-title, .card-header, .alerts-match-count, .profile-alert-status
+) {
+    color: #e5eaf2;
+}
+html[data-theme="dark"] body :is(
+    .saved-summary span, .saved-message, .saved-state p,
+    .ts-filter-row label, .ts-advanced-field label,
+    .profile-alert-how-card p, .profile-alert-step p
+) {
+    color: #a4afc0;
+}
+html[data-theme="dark"] body :is(
+    input, select, textarea, .ts-search-input, .ts-select-wrap select,
+    .ts-advanced-field input, .ts-advanced-field select
+) {
+    background-color: #131c2a;
+    color: #e5eaf2;
+    border-color: #354154;
+}
+html[data-theme="dark"] body input::placeholder,
+html[data-theme="dark"] body textarea::placeholder {
+    color: #8491a5;
+}
+html[data-theme="dark"] body :is(.saved-tender-card, .ts-tender-card, .alert-match-card) {
+    background-color: #202b3b;
+    color: #e5eaf2;
+    border-color: #354154;
+}
+html[data-theme="dark"] body :is(.saved-tender-card *, .ts-tender-card *, .alert-match-card *) {
+    border-color: #354154;
+}
+html[data-theme="dark"] body .saved-browse-link,
+html[data-theme="dark"] body .ts-results-toolbar a {
+    color: #a9caff;
+}
+
+/* Hard override for page-specific white surfaces in dark mode.
+   !important is intentional here because individual feature stylesheets may set white backgrounds. */
+html[data-theme="dark"] body,
+html[data-theme="dark"] body .main-content,
+html[data-theme="dark"] body main {
+    background: #111827 !important;
+    color: #e5eaf2 !important;
+}
+html[data-theme="dark"] body :is(
+    .saved-summary, .saved-tender-card, .saved-state, .saved-message,
+    .alert-empty-state, .profile-alert-card, .profile-alert-how-card,
+    .alert-matches-card, .alert-notifications-card, .profile-alert-step,
+    .ts-search-panel, .ts-state-card, .ts-tender-card, .ts-results-section,
+    .ts-results-toolbar, .ts-results-grid, .ts-advanced-filters,
+    .overview-welcome, .overview-kpi, .overview-panel,
+    .card, .panel, .content-card, .content-section, .content-box,
+    .empty-state, .table-container, .table-wrapper, .form-container,
+    [class*="tender-card"], [class*="alert-card"], [class*="summary"],
+    [class*="empty"], [class*="panel"], [class*="filter-card"]
+) {
+    background: #1b2433 !important;
+    background-color: #1b2433 !important;
+    color: #e5eaf2 !important;
+    border-color: #354154 !important;
+    box-shadow: none;
+}
+html[data-theme="dark"] body :is(
+    .saved-summary *, .saved-tender-card *, .saved-state *,
+    .alert-empty-state *, .profile-alert-card *, .profile-alert-how-card *,
+    .alert-matches-card *, .alert-notifications-card *, .profile-alert-step *,
+    .ts-search-panel *, .ts-state-card *, .ts-tender-card *,
+    .ts-results-section *, .ts-results-toolbar *, .ts-advanced-filters *,
+    .overview-welcome *, .overview-kpi *, .overview-panel *,
+    .card-header, .card-title, .card-body
+) {
+    color: #e5eaf2;
+    border-color: #354154;
+}
+html[data-theme="dark"] body :is(
+    input, select, textarea, .form-control, .form-select,
+    .ts-search-input, .ts-select-wrap select, .ts-advanced-field input,
+    .ts-advanced-field select
+) {
+    background: #131c2a !important;
+    background-color: #131c2a !important;
+    color: #e5eaf2 !important;
+    border-color: #354154 !important;
+}
+html[data-theme="dark"] body :is(
+    .saved-tender-card, .ts-tender-card, .alert-match-card
+) :is(a, h1, h2, h3, h4, p, span, strong, small, label, div) {
+    color: #e5eaf2;
+}
+html[data-theme="dark"] body :is(
+    .page-subtitle, .saved-eyebrow, .saved-message,
+    .ts-filter-caption, .ts-live-indicator, .profile-alert-step p
+) {
+    color: #a4afc0 !important;
+}
+
+
+
+/* Complete dark-mode coverage for shared tender pages */
+html[data-theme="dark"] body {
+    background-color: #111827 !important;
+    color: #e5eaf2;
+    color-scheme: dark;
+}
+html[data-theme="dark"] body :is(
+    .card, .panel, .content-card, .content-section, .content-box,
+    .table-container, .table-wrapper, .form-container,
+    .tender-card, .tender-detail-card, .detail-card, .detail-section,
+    .saved-tender-card, .saved-summary, .saved-state,
+    .alert-card, .alert-match-card, .alert-empty-state,
+    .profile-alert-card, .profile-alert-how-card, .alert-matches-card,
+    .alert-notifications-card, .profile-alert-step,
+    .ts-search-panel, .ts-state-card, .ts-tender-card,
+    .ts-results-section, .ts-results-toolbar, .ts-advanced-filters,
+    .feed-search, .filter-panel, .filters-panel, .filter-card,
+    .search-panel, .search-results, .notes-panel, .notes-card,
+    .note-input, .notes-input, .empty-state, .state-msg,
+    [class*="tender-card"], [class*="alert-card"], [class*="filter-card"],
+    [class*="results-panel"], [class*="notes-panel"], [class*="note-card"],
+    [class*="empty-state"], [class*="detail-card"], [class*="detail-section"],
+    [class*="form-panel"], [class*="content-panel"]
+) {
+    background: #1b2433 !important;
+    background-color: #1b2433 !important;
+    color: #e5eaf2 !important;
+    border-color: #354154 !important;
+}
+html[data-theme="dark"] body :is(
+    input, select, textarea, option,
+    .form-control, .form-select, .feed-search,
+    .feed-search input, #feedPageSize,
+    .ts-search-input, .ts-select-wrap select,
+    .ts-advanced-field input, .ts-advanced-field select,
+    [class*="search"] input, [class*="filter"] input,
+    [class*="filter"] select, [class*="note"] textarea,
+    [class*="note"] input
+) {
+    background: #131c2a !important;
+    background-color: #131c2a !important;
+    color: #e5eaf2 !important;
+    border-color: #354154 !important;
+    caret-color: #e5eaf2;
+}
+html[data-theme="dark"] body :is(
+    input, textarea, select, [class*="search"] input,
+    [class*="filter"] input, [class*="filter"] select,
+    [class*="note"] textarea, [class*="note"] input
+)::placeholder {
+    color: #9aa8bc !important;
+    opacity: 1;
+}
+html[data-theme="dark"] body :is(
+    .btn-secondary, .page-btn, .tender-open-btn,
+    .recent-open-btn, .overview-footer .btn-secondary,
+    .range-selector, .range-btn.active,
+    .feed-pagination .page-btn, [class*="filter"] button
+) {
+    background-color: #253247 !important;
+    color: #e5eaf2 !important;
+    border-color: #3b4b62 !important;
+}
+html[data-theme="dark"] body :is(
+    .tender-title, .detail-title, .detail-card-value,
+    .detail-section-title, .tender-meta strong,
+    .tender-card-head, .tender-card-foot,
+    .saved-tender-title, .ts-tender-title,
+    .card-title, .card-header, .card-body,
+    .doc-name, .feed-count, #feedCount
+) {
+    color: #e5eaf2 !important;
+}
+html[data-theme="dark"] body :is(
+    .page-subtitle, .detail-description, .detail-card-label,
+    .tender-number, .tender-meta, .tender-card-foot,
+    .doc-name, .feed-toolbar, #feedQueryLabel,
+    .saved-eyebrow, .saved-message, .ts-filter-caption,
+    .ts-live-indicator, .profile-alert-step p
+) {
+    color: #a4afc0 !important;
+}
+html[data-theme="dark"] body :is(
+    .tender-card-foot, .category-item, .doc-item,
+    .recent-tender, .overview-services, .overview-footer
+) {
+    border-color: #354154 !important;
+}
+html[data-theme="dark"] body :is(
+    .doc-item, .scrape-stat, .service-grid > div,
+    .state-msg, .feed-search, .range-selector
+) {
+    background-color: #202b3b !important;
+    color: #e5eaf2 !important;
+}
+html[data-theme="dark"] body :is(
+    input, select, textarea, button, a
+):focus-visible {
+    outline-color: #60a5fa;
+}
+
+
+/* Project-wide dark theme enforcement for every app page. */
+html[data-theme="dark"] body :is(article, aside, section, fieldset, [class*="card"], [class*="panel"], [class*="tile"], [class*="meta"], [class*="detail"], [class*="summary"], [class*="empty"], [class*="state"], [class*="filter"], [class*="result"], [class*="note"], [class*="form-group"], [class*="form-field"], [class*="input-group"], [class*="info-box"]):not([class*="icon"]):not([class*="badge"]):not([class*="button"]):not([class*="btn"]) {
+    background-color: #1b2433 !important; color: #e5eaf2 !important; border-color: #354154 !important;
+}
+html[data-theme="dark"] body :is(input, select, textarea, option, [contenteditable="true"], [class*="input"], [class*="textarea"], [class*="select"], [class*="search"] input, [class*="filter"] input, [class*="filter"] select, [class*="note"] textarea, [class*="note"] input):not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
+    background-color: #131c2a !important; color: #e5eaf2 !important; border-color: #354154 !important; caret-color: #e5eaf2;
+}
+html[data-theme="dark"] body :is(input, textarea, select, [contenteditable="true"])::placeholder { color: #9aa8bc !important; opacity: 1; }
+html[data-theme="dark"] body :is(.saved-meta > div, .ts-tender-details > div, .ts-tender-meta > div, .tender-meta-item, .tender-detail-item, .detail-item, .detail-tile, .tender-info-item, .metadata-item) {
+    background-color: #202b3b !important; color: #e5eaf2 !important; border-color: #354154 !important;
+}
+html[data-theme="dark"] body :is(.saved-card-actions button:not(.saved-save-notes), .saved-card-actions a, .saved-browse-link, .ts-pagination button, .ts-state-card button, .ts-tender-action, .recent-open-btn, .page-btn, .pagination button) {
+    background-color: #253247 !important; color: #e5eaf2 !important; border-color: #3b4b62 !important;
+}
+html[data-theme="dark"] body :is(.saved-tender-card h2, .saved-meta strong, .saved-notes label, .ts-tender-card h2, .ts-tender-card h3, .ts-tender-details strong, .ts-tender-details span, .detail-value, .detail-label, .tender-title, .tender-description, .tender-organisation) { color: #e5eaf2 !important; }
+html[data-theme="dark"] body :is(.saved-organisation, .saved-reference, .saved-meta span, .ts-tender-card p, .ts-tender-card small, .ts-pagination span, .ts-save-unavailable) { color: #a4afc0 !important; }
+
+
+/* Complete dark theme for ALL remaining pages: alerts, feed, profile, tender details and shared layout. */
+html[data-theme="dark"] body .main-content :is(
+    .profile-alert-card, .profile-alert-how-card, .alert-matches-card,
+    .alert-notifications-card, .profile-alert-summary, .alert-empty-state,
+    .profile-alert-step, .profile-card, .profile-account-card,
+    .profile-intro, .profile-form, .profile-field, .detail-section,
+    .detail-grid, .feed-toolbar, .feed-search, .feed-list,
+    .feed-pagination, .state-msg, .doc-list, .doc-item,
+    .notification-item, .alert-notification, .tender-card,
+    .tender-detail-card, .detail-card, .detail-tile, .info-card,
+    .feed-item, .tender-item, .list-item, .profile-field-full
+) {
+    background: #1b2433 !important;
+    background-color: #1b2433 !important;
+    color: #e5eaf2 !important;
+    border-color: #354154 !important;
+    box-shadow: none;
+}
+html[data-theme="dark"] body .main-content :is(
+    .profile-field input, .profile-field select, .profile-field textarea,
+    .profile-form input, .profile-form select, .profile-form textarea,
+    .feed-search input, #feedSearchInput, #feedPageSize,
+    .profile-input, .detail-grid input, .detail-grid select,
+    .detail-grid textarea, input, select, textarea, option
+) {
+    background: #131c2a !important;
+    background-color: #131c2a !important;
+    color: #e5eaf2 !important;
+    border-color: #354154 !important;
+    caret-color: #e5eaf2;
+}
+html[data-theme="dark"] body .main-content :is(input, textarea, select)::placeholder {
+    color: #9aa8bc !important;
+    opacity: 1;
+}
+html[data-theme="dark"] body .main-content :is(
+    .page-title, .page-header, .card-title, .section-helper,
+    .profile-account-info, .profile-account-label, .profile-intro,
+    .profile-helper, .profile-field label, .profile-field-full label,
+    .profile-alert-card h1, .profile-alert-card h2, .profile-alert-card h3,
+    .profile-alert-how-card h1, .profile-alert-how-card h2, .profile-alert-how-card h3,
+    .alert-matches-card h1, .alert-matches-card h2, .alert-matches-card h3,
+    .alert-notifications-card h1, .alert-notifications-card h2, .alert-notifications-card h3,
+    .detail-section-title, .detail-grid h1, .detail-grid h2, .detail-grid h3,
+    .feed-item h1, .feed-item h2, .feed-item h3, .tender-item h1, .tender-item h2,
+    .notification-item h1, .notification-item h2, .notification-item h3
+) {
+    color: #e5eaf2 !important;
+}
+html[data-theme="dark"] body .main-content :is(
+    .page-subtitle, .section-helper, .profile-helper, .profile-account-label,
+    .profile-alert-step p, .profile-alert-summary p, .alert-empty-state p,
+    .feed-toolbar, .feed-pagination, .detail-description,
+    .detail-grid p, .detail-grid span, .doc-list, .doc-item,
+    .notification-item p, .alert-notification p
+) {
+    color: #a4afc0 !important;
+}
+html[data-theme="dark"] body .main-content :is(
+    .btn-secondary, .text-button, .feed-pagination .page-btn,
+    .profile-actions .btn-secondary, .profile-delete
+) {
+    background: #253247 !important;
+    background-color: #253247 !important;
+    color: #e5eaf2 !important;
+    border-color: #3b4b62 !important;
+}
+html[data-theme="dark"] body .main-content :is(
+    .profile-actions .btn-primary, .profile-form .btn-primary
+) {
+    background: #315fae !important;
+    background-color: #315fae !important;
+    color: #ffffff !important;
+    border-color: #4779c8 !important;
+}
+html[data-theme="dark"] body .main-content .state-msg.error {
+    background: #3b2028 !important;
+    color: #fecaca !important;
+    border-color: #7f303d !important;
+}
+html[data-theme="dark"] body .main-content .state-msg.success {
+    background: #173b32 !important;
+    color: #a7f3d0 !important;
+    border-color: #276749 !important;
+}
+html[data-theme="dark"] body .sidebar,
+html[data-theme="dark"] body .sidebar-user,
+html[data-theme="dark"] body .sidebar-backdrop {
+    color: #e5eaf2;
+}
+html[data-theme="dark"] body .main-content :is(.profile-field, .profile-account-card, .detail-section, .doc-item, .feed-item, .notification-item) * {
+    border-color: #354154;
+}
+
+
+/* Target the actual pale pills and circles visible on Smart Tender Alerts and notifications. */
+html[data-theme="dark"] body .main-content.alerts-page .profile-alert-status,
+html[data-theme="dark"] body .main-content.alerts-page .alerts-match-count,
+html[data-theme="dark"] body .main-content.alerts-page .notification-unread-badge,
+html[data-theme="dark"] body .main-content.alerts-page .alert-score,
+html[data-theme="dark"] body .main-content.alerts-page .profile-alert-budget,
+html[data-theme="dark"] body .main-content.alerts-page .profile-alert-field > div > span,
+html[data-theme="dark"] body .main-content.alerts-page .profile-alert-step > span,
+html[data-theme="dark"] body .main-content.alerts-page .alert-match-reasons span,
+html[data-theme="dark"] body .main-content.alerts-page .notification-reasons span,
+html[data-theme="dark"] body .main-content.alerts-page .profile-alert-note {
+    background: #253247 !important;
+    background-color: #253247 !important;
+    color: #dbeafe !important;
+    border-color: #3b4b62 !important;
+    box-shadow: none !important;
+}
+html[data-theme="dark"] body .main-content.alerts-page .profile-alert-business,
+html[data-theme="dark"] body .main-content.alerts-page .profile-alert-field,
+html[data-theme="dark"] body .main-content.alerts-page .profile-alert-summary,
+html[data-theme="dark"] body .main-content.alerts-page .profile-alert-step,
+html[data-theme="dark"] body .main-content.alerts-page .alert-match-meta,
+html[data-theme="dark"] body .main-content.alerts-page .alert-match-footer,
+html[data-theme="dark"] body .main-content.alerts-page .notification-footer {
+    background: #1b2433 !important;
+    background-color: #1b2433 !important;
+    color: #e5eaf2 !important;
+    border-color: #354154 !important;
+}
+html[data-theme="dark"] body .main-content.alerts-page .profile-alert-status.active {
+    background: #173b32 !important;
+    color: #8be3bd !important;
+}
+html[data-theme="dark"] body .main-content.alerts-page .profile-alert-status.warning {
+    background: #49321e !important;
+    color: #fdba74 !important;
+}
+html[data-theme="dark"] body .main-content.alerts-page .profile-alert-budget {
+    background: #173b32 !important;
+    color: #8be3bd !important;
+}
+html[data-theme="dark"] body .main-content.alerts-page .alert-match-top h3,
+html[data-theme="dark"] body .main-content.alerts-page .notification-title-row h3,
+html[data-theme="dark"] body .main-content.alerts-page .profile-alert-business strong,
+html[data-theme="dark"] body .main-content.alerts-page .profile-alert-step strong,
+html[data-theme="dark"] body .main-content.alerts-page .profile-alert-field strong {
+    color: #e5eaf2 !important;
+}
+html[data-theme="dark"] body .main-content.alerts-page .profile-alert-field > span:first-child,
+html[data-theme="dark"] body .main-content.alerts-page .alert-match-meta span,
+html[data-theme="dark"] body .main-content.alerts-page .alert-match-meta strong,
+html[data-theme="dark"] body .main-content.alerts-page .profile-alert-business > span:last-child {
+    color: #a4afc0 !important;
+}
+
+
+
+/* Cookie launcher rules are defined once at the end of this theme layer. */
+
+/* Modern SaaS visual refresh */
+:root {
+  --app-bg: #f5f7fb;
+  --app-surface: #ffffff;
+  --app-ink: #152238;
+  --app-muted: #667b9c;
+  --app-line: #dce5f1;
+  --app-primary: #1f5fc5;
+  --app-primary-hover: #174fa8;
+}
+html, body { background: var(--app-bg); color: var(--app-ink); }
+body { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: -.01em; }
+.sidebar {
+  width: 252px;
+  padding: 18px 12px 14px;
+  background: #f8faff;
+  color: #152238;
+  border-right: 1px solid #dfe7f2;
+  box-shadow: none;
+}
+.sidebar-nav { gap: 4px; }
+.nav-item { min-height: 39px; gap: 10px; padding: 0 12px; border-radius: 9px; color: #34445e; font-size: 13px; font-weight: 500; }
+.nav-item:hover { background: #edf3fc; color: #174fa8; }
+.nav-item.active { background: #e4efff; color: #174fa8; font-weight: 700; }
+.nav-item.active::before { width: 0; height: 0; }
+.nav-item.active .nav-icon, .nav-icon { color: #527096; }
+.nav-item.active .nav-icon { color: #1f5fc5; }
+.sidebar-user { border-color: #e0e7f0; }
+.logout-button { border-color: #dce5f1; color: #b42336; border-radius: 10px; }
+.logout-button:hover { background: #fff1f2; border-color: #fecdd3; color: #9f1239; }
+.main-content { width: calc(100% - 252px); margin-left: 252px; }
+.app-topbar {
+  min-height: 62px;
+  padding: 0 24px;
+  background: rgba(255,255,255,.96);
+  border-bottom: 1px solid #e2e9f3;
+  box-shadow: 0 2px 8px rgba(24,48,86,.025);
+  backdrop-filter: blur(14px);
+}
+.topbar-search { max-width: 520px; }
+.topbar-search input { min-height: 40px; border: 1px solid #d8e2f0; border-radius: 11px; background: #fff; box-shadow: 0 2px 5px rgba(16,36,70,.045); color: #152238; }
+.topbar-search input:focus { border-color: #8db6f6; box-shadow: 0 0 0 3px rgba(31,95,197,.10); outline: 0; }
+.topbar-search input::placeholder { color: #8394ae; }
+.topbar-actions { gap: 12px; }
+.topbar-theme-toggle, .topbar-icon-link { width: 36px; height: 36px; border-radius: 10px; }
+.topbar-theme-toggle:hover, .topbar-icon-link:hover { background: #f0f5fc; }
+.topbar-avatar { background: #1f5fc5; }
+.topbar-username { color: #263650; font-weight: 600; }
+@media (max-width: 820px) {
+  .sidebar { width: min(290px, 86vw); }
+  .main-content { width: 100%; margin-left: 0; }
+  .app-topbar { padding: 0 14px; }
+}
+html[data-theme="dark"] {
+  --app-bg: #101827;
+  --app-surface: #182437;
+  --app-ink: #e8eef8;
+  --app-muted: #9aabc4;
+  --app-line: #34435a;
+}
+html[data-theme="dark"] body { background: #101827; color: #e8eef8; }
+html[data-theme="dark"] .sidebar { background: #121d2e; border-color: #2b3a50; color: #e8eef8; }
+html[data-theme="dark"] .logo-area, html[data-theme="dark"] .topbar-username { color: #e8eef8; }
+html[data-theme="dark"] .nav-item { color: #aab8cd; }
+html[data-theme="dark"] .nav-item:hover { background: #1c2b40; color: #dce9ff; }
+html[data-theme="dark"] .nav-item.active { background: #203b61; color: #dce9ff; }
+html[data-theme="dark"] .app-topbar { background: rgba(18,29,46,.96); border-color: #2b3a50; }
+html[data-theme="dark"] .topbar-search input { background: #172438; border-color: #34435a; color: #e8eef8; }
+html[data-theme="dark"] .topbar-search input::placeholder { color: #92a3bc; }
+html[data-theme="dark"] .topbar-theme-toggle:hover, html[data-theme="dark"] .topbar-icon-link:hover { background: #22324a; }
+html[data-theme="dark"] .logout-button { border-color: #34435a; }
+
+/* Tender Intelligence brand palette */
+:root { --app-bg: #eff6fa; --app-surface: #ffffff; --app-ink: #103b52; --app-muted: #647f90; --app-line: #d7e5ec; --app-primary: #247eae; --app-primary-hover: #17678f; --brand-navy: #103b52; --brand-yellow: #ffc400; --brand-blue: #247eae; --brand-pale: #eff6fa; }
+body { background: #eff6fa; color: #103b52; }
+.sidebar { background: #103b52; color: #f7fbfd; border-right-color: #0b3043; }
+.nav-item { color: #d6e7ef; }
+.nav-item:hover { background: rgba(255,255,255,.09); color: #ffffff; }
+.nav-item.active { background: #247eae; color: #ffffff; box-shadow: inset 3px 0 #ffc400; }
+.nav-item.active .nav-icon, .nav-icon { color: #d6e7ef; }
+.nav-item.active .nav-icon { color: #ffc400; }
+.logout-button { border-color: rgba(255,255,255,.2); color: #ffd5d9; }
+.logout-button:hover { background: rgba(255,196,0,.12); border-color: #ffc400; color: #ffc400; }
+.app-topbar { background: #ffffff; border-bottom-color: #d7e5ec; }
+.topbar-search input { border-color: #d7e5ec; color: #103b52; }
+.topbar-search input:focus { border-color: #247eae; box-shadow: 0 0 0 3px rgba(36,126,174,.13); }
+.topbar-theme-toggle:hover, .topbar-icon-link:hover { background: #eff6fa; color: #247eae; }
+.topbar-avatar { background: #247eae; }
+.topbar-username { color: #103b52; }
+.overview-text-link { background: #e5f1f7; color: #17678f; }
+html[data-theme="dark"] { --app-bg: #0a2636; --app-surface: #103449; --app-ink: #edf6fa; --app-muted: #aac1cd; --app-line: #2b5367; --app-primary: #3c9bca; --app-primary-hover: #61b4dc; }
+html[data-theme="dark"] body { background: #0a2636; color: #edf6fa; }
+html[data-theme="dark"] .sidebar { background: #071f2d; border-color: #254657; color: #edf6fa; }
+html[data-theme="dark"] .nav-item { color: #b7cfda; }
+html[data-theme="dark"] .nav-item:hover { background: rgba(255,255,255,.08); color: #ffffff; }
+html[data-theme="dark"] .nav-item.active { background: #174f6b; color: #ffffff; box-shadow: inset 3px 0 #ffc400; }
+html[data-theme="dark"] .app-topbar { background: #0e2e40; border-color: #254657; }
+html[data-theme="dark"] .topbar-search input { background: #12384d; border-color: #2b5367; color: #edf6fa; }
+html[data-theme="dark"] .topbar-search input::placeholder { color: #aac1cd; }
+
+/* AI Assistant navigation item */
+.sidebar-nav .ai-nav-item {
+  margin-top: 8px;
+  border: 1px solid rgba(255,196,0,.32);
+  background: rgba(255,196,0,.08);
+  color: #ffffff;
+}
+.sidebar-nav .ai-nav-item .nav-icon { color: #ffc400; font-size: 18px; }
+.sidebar-nav .ai-nav-item:hover {
+  border-color: #ffc400;
+  background: rgba(255,196,0,.15);
+  color: #ffffff;
+}
+.sidebar-nav .ai-nav-item:focus-visible {
+  outline: 2px solid #ffc400;
+  outline-offset: 2px;
+}
+html[data-theme="dark"] .sidebar-nav .ai-nav-item {
+  border-color: rgba(255,196,0,.35);
+  background: rgba(255,196,0,.09);
+  color: #edf6fa;
+}
+
+
+/* Shared light-theme refinements follow; cookie controls are handled in one block below. */
+
+/* Brighter, airier light theme across the application */
+html:not([data-theme="dark"]) {
+  --app-bg: #f8fbfd;
+  --app-surface: #ffffff;
+  --app-ink: #103b52;
+  --app-muted: #59778a;
+  --app-line: #e0ebf1;
+  --app-primary: #2789bd;
+  --app-primary-hover: #176f9e;
+}
+html:not([data-theme="dark"]) body { background: #f8fbfd; color: #103b52; }
+html:not([data-theme="dark"]) .main-content { background-color: #f8fbfd; }
+html:not([data-theme="dark"]) .app-topbar { background: rgba(255,255,255,.99); border-bottom-color: #e4edf3; }
+html:not([data-theme="dark"]) .topbar-search input { background: #ffffff; border-color: #dbe7ef; }
+html:not([data-theme="dark"]) .sidebar { background: #f5f9fc; border-right-color: #e0eaf1; }
+html:not([data-theme="dark"]) .nav-item { color: #36566b; }
+html:not([data-theme="dark"]) .nav-item:hover { background: #eaf5fb; color: #176f9e; }
+html:not([data-theme="dark"]) .nav-item.active { background: #e2f2fb; color: #145f88; box-shadow: inset 3px 0 #ffc400; }
+html:not([data-theme="dark"]) .nav-item.active .nav-icon { color: #247eae; }
+html:not([data-theme="dark"]) .sidebar-user { background: #ffffff; border-color: #e0ebf1; }
+html:not([data-theme="dark"]) .logout-button { background: #ffffff; }
+/* Cookie styling is defined by the canonical icon-only rule below. */
+
+
+/* Logo styling is owned by css/modern-shell.css. */
+html:not([data-theme="dark"]) .sidebar-user {
+  background: #ffffff !important;
+  border-color: #e0eaf1 !important;
+}
+html:not([data-theme="dark"]) .logout-button {
+  color: #a51d35 !important;
+  background: #ffffff !important;
+  border: 1px solid #dce5ec !important;
+  opacity: 1 !important;
+}
+html:not([data-theme="dark"]) .logout-button span {
+  color: inherit !important;
+}
+html:not([data-theme="dark"]) .logout-button:hover {
+  background: #fff1f2 !important;
+  border-color: #f3c5cc !important;
+  color: #8e172b !important;
+}
+html:not([data-theme="dark"]) .topbar-search {
+  border: 1px solid #dbe7ef !important;
+  background: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(16,59,82,.045) !important;
+}
+html:not([data-theme="dark"]) .topbar-search input {
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+html:not([data-theme="dark"]) .topbar-search:focus-within {
+  border-color: #70afd0 !important;
+  box-shadow: 0 0 0 3px rgba(36,126,174,.12) !important;
+}
+
+/* Overview dashboard dark theme */
+html[data-theme="dark"] {
+    --overview-ink: #e7edf7;
+    --overview-muted: #a3afc2;
+    --overview-line: #354154;
+    --overview-blue: #8bb8ff;
+    --overview-surface: #1b2433;
+}
+
+html[data-theme="dark"] body {
+    background: #111827;
+    color: #e7edf7;
+}
+
+html[data-theme="dark"] .overview-page {
+    color: #e7edf7;
+}
+
+html[data-theme="dark"] .overview-welcome,
+html[data-theme="dark"] .overview-kpi,
+html[data-theme="dark"] .overview-panel {
+    background: #1b2433;
+    border-color: #354154;
+    color: #e7edf7;
+    box-shadow: 0 5px 18px rgba(0, 0, 0, .12);
+}
+
+html[data-theme="dark"] .overview-welcome h1,
+html[data-theme="dark"] .overview-kpi strong,
+html[data-theme="dark"] .overview-panel-heading h2,
+html[data-theme="dark"] .overview-chart-summary strong,
+html[data-theme="dark"] .overview-scrape-highlight strong,
+html[data-theme="dark"] .overview-scrape-details strong,
+html[data-theme="dark"] .overview-services strong,
+html[data-theme="dark"] .overview-footer,
+html[data-theme="dark"] .overview-kpi p {
+    color: #e7edf7;
+}
+
+html[data-theme="dark"] .overview-welcome p,
+html[data-theme="dark"] .overview-panel-heading p,
+html[data-theme="dark"] .overview-kpi-top,
+html[data-theme="dark"] .overview-live,
+html[data-theme="dark"] .overview-chart-panel .chart-labels,
+html[data-theme="dark"] .overview-volume-panel .chart-labels,
+html[data-theme="dark"] .overview-scrape-highlight span:not(.overview-scrape-symbol),
+html[data-theme="dark"] .overview-scrape-details span,
+html[data-theme="dark"] .overview-services {
+    color: #a3afc2;
+}
+
+html[data-theme="dark"] .overview-kpi-icon,
+html[data-theme="dark"] .overview-panel-mark {
+    background: #293a54;
+    color: #a9caff;
+}
+
+html[data-theme="dark"] .overview-kpi-teal .overview-kpi-icon {
+    background: #173b3b;
+    color: #79e2d3;
+}
+
+html[data-theme="dark"] .overview-kpi-amber .overview-kpi-icon {
+    background: #44351e;
+    color: #f7c873;
+}
+
+html[data-theme="dark"] .overview-kpi-violet .overview-kpi-icon {
+    background: #342d51;
+    color: #c4b5fd;
+}
+
+html[data-theme="dark"] .overview-range {
+    background: #151e2c;
+    border-color: #354154;
+}
+
+html[data-theme="dark"] .overview-range .range-btn {
+    color: #a3afc2;
+}
+
+html[data-theme="dark"] .overview-range .range-btn.active {
+    background: #315fae;
+    color: #fff;
+}
+
+html[data-theme="dark"] .overview-scrape-panel {
+    background: linear-gradient(145deg, #1b2433 0%, #192333 100%);
+}
+
+html[data-theme="dark"] .overview-scrape-highlight,
+html[data-theme="dark"] .overview-scrape-details > div {
+    background: #202b3b;
+    border-color: #354154;
+}
+
+html[data-theme="dark"] .overview-scrape-symbol {
+    background: #293a54;
+    color: #a9caff;
+}
+
+html[data-theme="dark"] .overview-scrape-divider {
+    background: #354154;
+}
+
+html[data-theme="dark"] .overview-chart-wrap .grid-lines line {
+    stroke: #354154;
+}
+
+html[data-theme="dark"] .overview-chart-wrap .chart-dot {
+    fill: #1b2433;
+}
+
+html[data-theme="dark"] .overview-chart-summary .trend {
+    background: #173b32;
+    color: #8be3bd;
+}
+
+html[data-theme="dark"] .overview-live span {
+    box-shadow: 0 0 0 4px #21433b;
+}
+
+
+
+/* Keep every overview widget readable when dark mode is active */
+html[data-theme="dark"] .overview-page :is(
+    .overview-welcome, .overview-kpi, .overview-panel,
+    .overview-scrape-highlight, .overview-scrape-details > div,
+    .overview-recent-list .recent-tender, .overview-footer,
+    .overview-services > div, .overview-category-list .category-item
+) {
+    background-color: #1b2433 !important;
+    border-color: #354154 !important;
+    color: #e5eaf2 !important;
+}
+html[data-theme="dark"] .overview-page :is(
+    input, select, textarea, option, .btn-secondary,
+    .recent-open-btn, .overview-text-link, .category-count,
+    .overview-eyebrow, .overview-scrape-details > div
+) {
+    background-color: #202b3b !important;
+    color: #e5eaf2 !important;
+    border-color: #354154 !important;
+}
+html[data-theme="dark"] .overview-page :is(
+    h1, h2, h3, h4, strong, p, label, .recent-tender-title,
+    .recent-tender-number, .overview-kpi-top, .overview-panel-heading p,
+    .overview-scrape-details span, .overview-services, .overview-footer
+) {
+    color: #e5eaf2 !important;
+}
+html[data-theme="dark"] .overview-page :is(
+    input, textarea, select
+)::placeholder {
+    color: #9aa8bc !important;
+    opacity: 1;
+}
+
+
+/* Final overview theme overrides for secondary cards and controls. */
+html[data-theme="dark"] body .overview-page :is(.overview-kpi, .overview-panel, .overview-scrape-panel, .overview-scrape-highlight, .overview-scrape-details > div, .overview-recent-list .recent-tender, .overview-services > div, .overview-category-list .category-item) { background: #1b2433 !important; background-color: #1b2433 !important; color: #e5eaf2 !important; border-color: #354154 !important; }
+html[data-theme="dark"] body .overview-page :is(input, select, textarea, option, .range-btn:not(.active)) { background: #131c2a !important; background-color: #131c2a !important; color: #e5eaf2 !important; border-color: #354154 !important; }
+
+
+/* Dashboard refresh inspired by the supplied reference */
+.main-content.overview-page {
+  padding: calc(24px + var(--app-topbar-height, 62px)) 24px 34px;
+  background: #f5f7fb;
+  color: #152238;
+}
+.overview-welcome {
+  min-height: 0;
+  margin-bottom: 20px;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.overview-welcome::after { display: none; }
+.overview-welcome > div:first-child { max-width: 760px; }
+.overview-eyebrow { display: none; }
+.overview-welcome h1 {
+  color: #152238;
+  font-size: clamp(25px, 2.1vw, 31px);
+  font-weight: 750;
+  letter-spacing: -.055em;
+}
+.overview-welcome h1 span { color: #1f5fc5; }
+.overview-welcome p { margin-top: 6px; color: #7184a2; font-size: 13px; }
+.overview-welcome-actions { gap: 12px; }
+.overview-live { display: none; }
+.overview-primary-button {
+  min-height: 40px;
+  padding: 0 17px;
+  border: 1px solid #1f5fc5;
+  border-radius: 10px;
+  background: #1f5fc5;
+  box-shadow: 0 4px 9px rgba(31,95,197,.15);
+  font-size: 12px;
+}
+.overview-primary-button:hover { background: #174fa8; transform: translateY(-1px); }
+.overview-kpi-grid { grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px; margin: 20px 0 16px; }
+.overview-kpi {
+  min-height: 118px;
+  padding: 17px 18px;
+  border: 1px solid #dce5f1;
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 5px 14px rgba(25,48,82,.055);
+}
+.overview-kpi::before { display: none; }
+.overview-kpi:hover { transform: translateY(-2px); border-color: #bfd2ed; box-shadow: 0 9px 22px rgba(25,48,82,.09); }
+.overview-kpi-top { color: #7084a4; font-size: 11px; font-weight: 650; text-transform: uppercase; letter-spacing: .035em; }
+.overview-kpi-icon { width: 37px; height: 37px; border: 0; border-radius: 12px; background: #e8f1ff; color: #1f5fc5; font-size: 18px; }
+.overview-kpi-teal .overview-kpi-icon { background: #e5f8f5; color: #099889; }
+.overview-kpi-amber .overview-kpi-icon { background: #fff3dc; color: #d97706; }
+.overview-kpi-violet .overview-kpi-icon { background: #f0edff; color: #7655d8; }
+.overview-kpi strong { margin-top: 10px; color: #152238; font-size: 30px; font-weight: 780; letter-spacing: -.055em; }
+.overview-kpi p { margin-top: 7px; color: #7b8eaa; font-size: 11px; }
+.overview-primary-grid { grid-template-columns: minmax(0,1.65fr) minmax(290px,.85fr); gap: 16px; margin-bottom: 16px; }
+.overview-secondary-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin-bottom: 16px; }
+.overview-panel {
+  padding: 21px;
+  border: 1px solid #dce5f1;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 5px 14px rgba(25,48,82,.045);
+}
+.overview-panel:hover { border-color: #d0deef; box-shadow: 0 8px 22px rgba(25,48,82,.065); }
+.overview-panel-heading h2 { color: #17243b; font-size: 17px; font-weight: 750; letter-spacing: -.035em; }
+.overview-panel-heading p { color: #7b8eaa; font-size: 11px; }
+.overview-section-kicker { color: #7b8eaa; font-size: 9px; letter-spacing: .12em; }
+.overview-panel-mark { background: #e8f1ff; color: #1f5fc5; }
+.overview-range { background: #f6f8fc; border-color: #e1e8f2; }
+.overview-range .range-btn { color: #7084a4; }
+.overview-range .range-btn.active { background: #1f5fc5; color: #fff; box-shadow: 0 2px 5px rgba(31,95,197,.2); }
+.overview-chart-summary strong { color: #152238; font-size: 25px; }
+.overview-chart-wrap { height: 205px; }
+.overview-chart-wrap .grid-lines line { stroke: #e9eef6; }
+.overview-chart-wrap .line-path { stroke: #1f5fc5; stroke-width: 3; }
+.overview-chart-wrap .chart-dot { stroke: #1f5fc5; }
+.overview-scrape-panel { background: #fff; }
+.overview-scrape-highlight { border-color: #dce7f5; border-radius: 12px; background: #f5f8fd; }
+.overview-scrape-symbol { background: #e5efff; color: #1f5fc5; }
+.overview-scrape-highlight strong { color: #17243b; }
+.overview-scrape-details > div { border-color: #e7edf5; background: #fbfcfe; }
+.overview-scrape-details strong { color: #354761; }
+.overview-services { border-color: #e7edf5; }
+.overview-services > div { color: #7084a4; }
+.overview-services strong { color: #354761; }
+.overview-province-list .progress-track { background: #edf2f8; }
+.overview-province-list .progress-fill { background: #1f5fc5; }
+.overview-category-list .category-count { background: #e8f1ff; color: #1f5fc5; border-color: #dce8fb; }
+.overview-recent-panel { margin-bottom: 16px; }
+.overview-recent-list .recent-tender { padding: 16px 0; border-color: #e9eef5; }
+.overview-recent-list .recent-tender-number { background: #f0f5fc; color: #627895; }
+.overview-recent-list .recent-tender-title { color: #17243b; }
+.overview-recent-list .recent-tender-org { color: #7b8eaa; }
+.overview-recent-list .recent-open-btn { border-color: #d9e4f2; border-radius: 9px; color: #1f5fc5; }
+.overview-text-link { background: #edf4ff; color: #1f5fc5; }
+.overview-footer { border-color: #e1e8f2; color: #7b8eaa; }
+html[data-theme="dark"] .main-content.overview-page { background: #101827; color: #e8eef8; }
+html[data-theme="dark"] .overview-welcome { background: transparent; }
+html[data-theme="dark"] .overview-welcome h1, html[data-theme="dark"] .overview-panel-heading h2, html[data-theme="dark"] .overview-kpi strong, html[data-theme="dark"] .overview-recent-list .recent-tender-title { color: #e8eef8; }
+html[data-theme="dark"] .overview-welcome p, html[data-theme="dark"] .overview-panel-heading p, html[data-theme="dark"] .overview-kpi p, html[data-theme="dark"] .overview-kpi-top { color: #9aabc4; }
+html[data-theme="dark"] .overview-kpi, html[data-theme="dark"] .overview-panel { background: #182437; border-color: #34435a; }
+html[data-theme="dark"] .overview-scrape-highlight, html[data-theme="dark"] .overview-scrape-details > div { background: #1d2b40; border-color: #34435a; }
+html[data-theme="dark"] .overview-scrape-highlight strong, html[data-theme="dark"] .overview-scrape-details strong, html[data-theme="dark"] .overview-services strong { color: #e8eef8; }
+html[data-theme="dark"] .overview-range { background: #142034; border-color: #34435a; }
+html[data-theme="dark"] .overview-range .range-btn.active { background: #1f5fc5; }
+html[data-theme="dark"] .overview-text-link { background: #203b61; color: #c5dcff; }
+html[data-theme="dark"] .overview-recent-list .recent-tender-number { background: #203047; color: #b3c3db; }
+html[data-theme="dark"] .overview-recent-list .recent-open-btn { background: #182437; border-color: #34435a; color: #bcd6ff; }
+@media (max-width: 1100px) {
+  .main-content.overview-page { padding-right: 20px; padding-left: 20px; }
+  .overview-primary-grid { grid-template-columns: minmax(0,1.2fr) minmax(260px,1fr); }
+}
+@media (max-width: 850px) {
+  .overview-welcome { align-items: flex-start; flex-direction: column; }
+  .overview-welcome-actions { width: 100%; justify-content: flex-start; }
+  .overview-primary-grid, .overview-secondary-grid { grid-template-columns: minmax(0,1fr); }
+}
+@media (max-width: 650px) {
+  .main-content.overview-page { padding: calc(18px + var(--app-topbar-height,62px)) 13px 24px; }
+  .overview-welcome h1 { font-size: 25px; }
+  .overview-kpi-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+  .overview-kpi { min-height: 112px; padding: 14px 13px; }
+  .overview-kpi-top { align-items: flex-start; font-size: 9px; }
+  .overview-kpi-icon { width: 30px; height: 30px; }
+  .overview-kpi strong { font-size: 25px; }
+  .overview-panel { padding: 16px 14px; }
+  .overview-panel-heading { gap: 10px; }
+  .overview-chart-wrap { height: 170px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .overview-page *, .overview-page *::before, .overview-page *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+
+/* Tender Intelligence brand palette: navy, yellow, blue and pale blue-grey */
+.main-content.overview-page { background: #eff6fa; color: #103b52; }
+.overview-welcome h1 { color: #103b52; }
+.overview-welcome h1 span { color: #247eae; }
+.overview-primary-button { background: #247eae; border-color: #247eae; color: #ffffff; box-shadow: 0 4px 9px rgba(16,59,82,.14); }
+.overview-primary-button:hover { background: #17678f; border-color: #17678f; }
+.overview-kpi { border-color: #d7e5ec; box-shadow: 0 5px 14px rgba(16,59,82,.07); }
+.overview-kpi-icon { background: #e2f0f7; color: #247eae; }
+.overview-kpi-teal .overview-kpi-icon { background: #e0f3f0; color: #147e79; }
+.overview-kpi-amber .overview-kpi-icon { background: #fff4c9; color: #8b6500; }
+.overview-kpi-violet .overview-kpi-icon { background: #e7f0f6; color: #103b52; }
+.overview-panel { border-color: #d7e5ec; box-shadow: 0 5px 14px rgba(16,59,82,.055); }
+.overview-panel-heading h2 { color: #103b52; }
+.overview-panel-mark { background: #e2f0f7; color: #247eae; }
+.overview-range .range-btn.active { background: #247eae; }
+.overview-chart-wrap .line-path { stroke: #247eae; }
+.overview-chart-wrap .chart-dot { stroke: #247eae; }
+.overview-scrape-highlight { background: #eff6fa; border-color: #d7e5ec; }
+.overview-scrape-symbol { background: #e2f0f7; color: #247eae; }
+.overview-category-list .category-count { background: #e2f0f7; color: #17678f; border-color: #d7e5ec; }
+.overview-province-list .progress-fill { background: #247eae; }
+.overview-text-link { background: #e2f0f7; color: #17678f; }
+.overview-footer { border-color: #d7e5ec; }
+html[data-theme="dark"] .main-content.overview-page { background: #0a2636; color: #edf6fa; }
+html[data-theme="dark"] .overview-welcome h1, html[data-theme="dark"] .overview-panel-heading h2, html[data-theme="dark"] .overview-kpi strong, html[data-theme="dark"] .overview-recent-list .recent-tender-title { color: #edf6fa; }
+html[data-theme="dark"] .overview-kpi, html[data-theme="dark"] .overview-panel { background: #103449; border-color: #2b5367; }
+html[data-theme="dark"] .overview-scrape-highlight, html[data-theme="dark"] .overview-scrape-details > div { background: #143d52; border-color: #2b5367; }
+html[data-theme="dark"] .overview-scrape-highlight strong, html[data-theme="dark"] .overview-scrape-details strong, html[data-theme="dark"] .overview-services strong { color: #edf6fa; }
+html[data-theme="dark"] .overview-range { background: #0e2e40; border-color: #2b5367; }
+html[data-theme="dark"] .overview-range .range-btn.active { background: #247eae; }
+html[data-theme="dark"] .overview-text-link { background: #174f6b; color: #e3f4fb; }
+html[data-theme="dark"] .overview-recent-list .recent-tender-number { background: #174054; color: #c2dbe5; }
+html[data-theme="dark"] .overview-recent-list .recent-open-btn { background: #103449; border-color: #2b5367; color: #d4ecf5; }
+
+/* Cookie launcher appearance is owned by css/modern-shell.css. */
+
+/* Settings notification preferences */
+.notification-preference-list { display: grid; gap: 16px; }
+.notification-preference-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  min-height: 68px; padding: 16px; border: 1px solid var(--shell-border, #dce5f1);
+  border-radius: 16px; background: var(--shell-surface, #fff); cursor: pointer;
+}
+.notification-preference-copy { display: grid; gap: 4px; min-width: 0; }
+.notification-preference-copy strong, .notification-reminder-timing > strong { color: var(--shell-ink, #17233a); font-size: 14px; font-weight: 600; }
+.notification-preference-copy > span, .notification-reminder-timing > span { color: var(--shell-muted, #7285a4); font-size: 12px; line-height: 1.5; }
+.notification-switch { appearance: none; -webkit-appearance: none; flex: 0 0 36px; width: 36px; height: 20px; margin: 0; border: 0; border-radius: 999px; background: #e2e8f0; position: relative; cursor: pointer; transition: background .18s ease; }
+.notification-switch::after { content: ""; position: absolute; width: 16px; height: 16px; top: 2px; left: 2px; border-radius: 50%; background: white; box-shadow: 0 1px 3px rgba(0,0,0,.18); transition: transform .18s ease; }
+.notification-switch:checked { background: #1f5fc5; }
+.notification-switch:checked::after { transform: translateX(16px); }
+.notification-switch:focus-visible, .notification-timing-options button:focus-visible { outline: 2px solid var(--shell-accent, #247eae); outline-offset: 3px; }
+.notification-reminder-timing { display: grid; gap: 5px; padding: 16px; border: 1px solid var(--shell-border, #dce5f1); border-radius: 16px; background: var(--shell-surface, #fff); }
+.notification-timing-options { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 7px; }
+.notification-timing-options button { min-height: 34px; padding: 0 13px; border: 1px solid var(--shell-border, #dce5f1); border-radius: 11px; background: var(--shell-surface, #fff); color: var(--shell-ink, #17233a); font: inherit; font-size: 12px; cursor: pointer; }
+.notification-timing-options button.active { border-color: #1f5fc5; background: #1f5fc5; color: #fff; font-weight: 650; }
+.notification-preferences-note { margin: 0; font-size: 12px; }
+html[data-theme="dark"] .notification-preference-row, html[data-theme="dark"] .notification-reminder-timing { background: var(--shell-surface); border-color: var(--shell-border); }
+html[data-theme="dark"] .notification-preference-copy strong, html[data-theme="dark"] .notification-reminder-timing > strong { color: var(--shell-ink); }
+html[data-theme="dark"] .notification-timing-options button { background: var(--shell-surface); color: var(--shell-ink); border-color: var(--shell-border); }
+html[data-theme="dark"] .notification-timing-options button.active { background: #1f5fc5; border-color: #1f5fc5; color: #fff; }
+@media (max-width: 600px) { .notification-preference-row { gap: 12px; padding: 13px; } .notification-preference-copy > span { max-width: 42ch; } .notification-reminder-timing { padding: 13px; } .notification-timing-options { gap: 6px; } .notification-timing-options button { padding: 0 10px; } }
+
+/* Profile settings refresh: consistent with the My Profile account-card design. */
+.settings-page { max-width: 1240px; margin-inline: auto; }
+.settings-header { margin-bottom: 22px; }
+.settings-header .page-title { font-size: clamp(28px, 3vw, 34px); letter-spacing: -.035em; }
+.settings-header .page-subtitle { margin-top: 5px; }
+.profile-account-card {
+  display: flex; align-items: center; gap: 16px; margin: 0 0 18px; padding: 18px 20px;
+  min-height: 96px; border: 1px solid var(--shell-border, #dce5f1); border-radius: 16px;
+  background: var(--shell-surface, #fff); box-shadow: 0 5px 18px rgba(22, 44, 72, .045);
+}
+.profile-account-avatar { display: grid; place-items: center; flex: 0 0 58px; width: 58px; height: 58px; border-radius: 50%; background: #4338ca; color: #fff; font-size: 22px; font-weight: 750; }
+.profile-account-info { display: grid; gap: 4px; min-width: 0; }
+.profile-account-label { color: var(--shell-muted, #7185a5); font-size: 10px; font-weight: 800; letter-spacing: .11em; }
+.profile-account-info strong { overflow-wrap: anywhere; color: var(--shell-ink, #10243d); font-size: 16px; font-weight: 750; }
+.profile-account-info > span:last-child { color: var(--shell-muted, #7185a5); font-size: 12px; }
+.settings-content { padding: 0; border: 0; background: transparent; box-shadow: none; }
+.settings-tabs { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 5px; margin: 0 0 16px; border: 1px solid var(--shell-border, #dce5f1); border-radius: 14px; background: var(--shell-surface, #fff); }
+.settings-tab { min-height: 38px; padding: 0 15px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: var(--shell-muted, #7185a5); font: inherit; font-size: 13px; cursor: pointer; }
+.settings-tab.active { border-color: var(--shell-border, #dce5f1); background: var(--shell-surface, #fff); color: var(--shell-ink, #10243d); box-shadow: 0 2px 5px rgba(22,44,72,.07); }
+.settings-panel { padding: 24px; border: 1px solid var(--shell-border, #dce5f1); border-radius: 18px; background: var(--shell-surface, #fff); box-shadow: 0 7px 24px rgba(22,44,72,.045); }
+.settings-panel h2 { margin: 0 0 18px; font-size: 17px; }
+html[data-theme="dark"] .profile-account-card, html[data-theme="dark"] .settings-tabs, html[data-theme="dark"] .settings-panel { background: var(--shell-surface); border-color: var(--shell-border); }
+html[data-theme="dark"] .profile-account-info strong { color: var(--shell-ink); }
+html[data-theme="dark"] .settings-tab.active { background: var(--shell-surface); color: var(--shell-ink); border-color: var(--shell-border); }
+@media (max-width: 650px) {
+ .profile-account-card { padding: 15px; gap: 12px; }
+ .profile-account-avatar { flex-basis: 48px; width: 48px; height: 48px; }
+ .profile-account-info strong { font-size: 14px; }
+ .settings-panel { padding: 17px 14px; }
+ .settings-tabs { display: flex; width: 100%; }
+ .settings-tab { flex: 1 1 auto; padding-inline: 9px; }
+}
+
+
+
+/* Tender search uses the same theme tokens as the shared application shell. */
+html[data-theme="dark"] .tender-search-main,
+html[data-theme="dark"] .tender-search-main .page-subtitle,
+html[data-theme="dark"] .tender-search-main .ts-results-toolbar,
+html[data-theme="dark"] .tender-search-main .ts-filter-caption,
+html[data-theme="dark"] .tender-search-main .ts-detail-label,
+html[data-theme="dark"] .tender-search-main .ts-tender-organisation,
+html[data-theme="dark"] .tender-search-main .ts-tender-description,
+html[data-theme="dark"] .tender-search-main .ts-api-status {
+    color: var(--theme-muted);
+}
+
+html[data-theme="dark"] .tender-search-main .ts-search-panel,
+html[data-theme="dark"] .tender-search-main .ts-tender-card,
+html[data-theme="dark"] .tender-search-main .ts-state-card,
+html[data-theme="dark"] .tender-search-main .ts-search-input-wrap,
+html[data-theme="dark"] .tender-search-main .ts-advanced-field,
+html[data-theme="dark"] .tender-search-main .ts-filter-row {
+    background: var(--theme-surface);
+    color: var(--theme-text);
+    border-color: var(--theme-border);
+}
+
+html[data-theme="dark"] .tender-search-main .ts-search-input-wrap input,
+html[data-theme="dark"] .tender-search-main input,
+html[data-theme="dark"] .tender-search-main select {
+    background: var(--theme-input);
+    color: var(--theme-text);
+    border-color: var(--theme-border);
+}
+
+html[data-theme="dark"] .tender-search-main .ts-tender-title,
+html[data-theme="dark"] .tender-search-main .ts-detail-value,
+html[data-theme="dark"] .tender-search-main .ts-state-card p {
+    color: var(--theme-text);
+}
+
+html[data-theme="dark"] .tender-search-main .ts-quick-filter,
+html[data-theme="dark"] .tender-search-main .ts-more-filters,
+html[data-theme="dark"] .tender-search-main .ts-pagination button {
+    background: var(--theme-surface-soft);
+    color: var(--theme-text);
+    border-color: var(--theme-border);
+}

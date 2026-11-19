@@ -1,0 +1,27 @@
+services:
+  tender-ml:
+    build: .
+    container_name: tender-ml
+    restart: unless-stopped
+    environment:
+      DATABASE_PATH: /data/tenders.db
+      MODEL_PATH: /models/category_model.joblib
+      REPORTS_DIR: /models/reports
+    ports:
+      - "9004:9004"
+    volumes:
+      # The shared database is opened read-only by the code. It is not mounted with :ro
+      # because SQLite needs to see the database's WAL files to read it safely.
+      - tender-sqlite-data:/data
+      - tender-ml-models:/models
+    networks:
+      - tender-net
+volumes:
+  tender-sqlite-data:
+    external: true
+    name: tender-scrapping_tender-sqlite-data
+  tender-ml-models:
+networks:
+  tender-net:
+    external: true
+    name: tender-scrapping-net

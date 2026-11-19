@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tender Category Classifier</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --ink: #152238;
+      --muted: #667b9c;
+      --line: #dce5f1;
+      --field: #ffffff;
+      --track: #e8eef7;
+      --primary: #1f5fc5;
+      --primary-hover: #174fa8;
+      --focus: #1f5fc5;
+      --good: #15803d;
+      --warn: #b45309;
+      --error: #b91c1c;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111827;
+        --surface: #1b2433;
+        --ink: #e5eaf2;
+        --muted: #a4afc0;
+        --line: #354154;
+        --field: #131c2a;
+        --track: #263246;
+        --focus: #a9caff;
+        --good: #4ade80;
+        --warn: #fbbf24;
+        --error: #f87171;
+      }
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-family: Arial, Helvetica, sans-serif; line-height: 1.5; }
+    main { max-width: 720px; margin: 0 auto; padding: 32px 16px 48px; }
+    h1 { margin: 0 0 4px; font-size: 1.6rem; }
+    .lead { margin: 0 0 20px; color: var(--muted); }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+
+    .tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+    .tab { padding: 8px 16px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--ink); font: inherit; cursor: pointer; }
+    .tab[aria-selected="true"] { background: var(--primary); border-color: var(--primary); color: #ffffff; font-weight: bold; }
+
+    .examples { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--muted); font-size: 0.9rem; }
+    .chip { border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--ink); padding: 4px 12px; font: inherit; cursor: pointer; }
+    .chip:hover { border-color: var(--primary); }
+
+    label { display: block; margin: 14px 0 4px; font-weight: bold; }
+    label span { font-weight: normal; color: var(--muted); }
+    input, textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--field); color: var(--ink); font: inherit; }
+    textarea { min-height: 80px; resize: vertical; }
+    input:focus, textarea:focus, button:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+
+    .submit { margin-top: 16px; padding: 10px 20px; border: 0; border-radius: 8px; background: var(--primary); color: #ffffff; font: inherit; font-weight: bold; cursor: pointer; }
+    .submit:hover { background: var(--primary-hover); }
+    .submit:disabled { opacity: 0.6; cursor: wait; }
+
+    .verdict { margin: 0 0 4px; font-size: 1.2rem; font-weight: bold; }
+    .verdict.confident { color: var(--good); }
+    .verdict.unsure { color: var(--warn); }
+    .verdict.error { color: var(--error); }
+    .note { margin: 0; color: var(--muted); font-size: 0.9rem; }
+    .suggestion { margin-top: 14px; }
+    .suggestion-head { display: flex; justify-content: space-between; gap: 12px; }
+    .bar { height: 8px; margin-top: 4px; border-radius: 4px; background: var(--track); overflow: hidden; }
+    .bar div { height: 100%; background: var(--primary); }
+    .why { margin: 16px 0 0; }
+    footer { color: var(--muted); font-size: 0.85rem; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Tender Category Classifier</h1>
+  <p class="lead">Machine learning that reads a tender or a company description and predicts its procurement category.</p>
+
+  <div class="tabs" role="tablist">
+    <button type="button" class="tab" role="tab" aria-selected="true" data-panel="tender-form">Tender</button>
+    <button type="button" class="tab" role="tab" aria-selected="false" data-panel="company-form">Company</button>
+  </div>
+
+  <form id="tender-form" class="card" data-endpoint="/predict">
+    <div class="examples">
+      Try an example:
+      <button type="button" class="chip" data-fill='{"title": "Supply and delivery of 50 laptops", "organisation": "Statistics South Africa"}'>Laptops</button>
+      <button type="button" class="chip" data-fill='{"title": "Provision of security guarding services for 36 months", "organisation": "Department of Health"}'>Security guards</button>
+      <button type="button" class="chip" data-fill='{"title": "Rehabilitation of gravel roads", "organisation": "Department of Public Works and Roads"}'>Road repairs</button>
+      <button type="button" class="chip" data-fill='{"title": "Request for quotation"}'>Vague tender</button>
+    </div>
+    <label for="title">Title</label>
+    <input id="title" name="title" required maxlength="1000" placeholder="e.g. Supply and delivery of office furniture">
+    <label for="organisation">Organisation that published it <span>(optional)</span></label>
+    <input id="organisation" name="organisation" maxlength="1000" placeholder="e.g. Department of Health">
+    <label for="description">Description <span>(optional)</span></label>
+    <textarea id="description" name="description" maxlength="20000"></textarea>
+    <button type="submit" class="submit">Predict category</button>
+  </form>
+
+  <form id="company-form" class="card" data-endpoint="/categorise-company" hidden>
+    <div class="examples">
+      Try an example:
+      <button type="button" class="chip" data-fill='{"industries": "Information technology", "services": "laptop and server supply, network installation"}'>IT company</button>
+      <button type="button" class="chip" data-fill='{"industries": "Cleaning", "services": "office cleaning, hygiene services, pest control"}'>Cleaning company</button>
+      <button type="button" class="chip" data-fill='{"industries": "Construction", "services": "roads, bridges, stormwater", "description": "Civil construction company, CIDB grade 6CE"}'>Construction company</button>
+    </div>
+    <label for="industries">Industries <span>(separate with commas)</span></label>
+    <input id="industries" name="industries" maxlength="1000" placeholder="e.g. Information technology">
+    <label for="services">Services <span>(separate with commas)</span></label>
+    <input id="services" name="services" maxlength="1000" placeholder="e.g. laptop supply, network installation">
+    <label for="company-description">What the company does <span>(optional)</span></label>
+    <textarea id="company-description" name="description" maxlength="20000"></textarea>
+    <button type="submit" class="submit">Find its categories</button>
+  </form>
+
+  <section id="result" class="card" aria-live="polite" hidden>
+    <p id="verdict" class="verdict"></p>
+    <p id="note" class="note"></p>
+    <div id="suggestions"></div>
+    <p id="why" class="note why" hidden></p>
+  </section>
+
+  <footer id="model-info"></footer>
+</main>
+
+<script>
+  const result = document.getElementById("result");
+  const verdict = document.getElementById("verdict");
+  const note = document.getElementById("note");
+  const suggestionList = document.getElementById("suggestions");
+  const why = document.getElementById("why");
+
+  const percent = (share) => `${(share * 100).toFixed(1)}%`;
+  const commaList = (value) => value.split(",").map((item) => item.trim()).filter(Boolean);
+
+  function renderSuggestion({ category, probability }) {
+    const name = document.createElement("span");
+    name.textContent = category;
+    const value = document.createElement("strong");
+    value.textContent = percent(probability);
+    const head = document.createElement("div");
+    head.className = "suggestion-head";
+    head.append(name, value);
+    const fill = document.createElement("div");
+    fill.style.width = percent(probability);
+    const bar = document.createElement("div");
+    bar.className = "bar";
+    bar.append(fill);
+    const item = document.createElement("div");
+    item.className = "suggestion";
+    item.append(head, bar);
+    return item;
+  }
+
+  function show(state, title, message, suggestions = [], explanation = []) {
+    verdict.className = `verdict ${state}`;
+    verdict.textContent = title;
+    note.textContent = message;
+    suggestionList.replaceChildren(...suggestions.map(renderSuggestion));
+    why.hidden = explanation.length === 0;
+    why.textContent = `Words behind the top guess: ${explanation.join(", ")}`;
+    result.hidden = false;
+  }
+
+  function showTender(prediction) {
+    const threshold = Math.round(prediction.min_confidence * 100);
+    show(
+      prediction.category ? "confident" : "unsure",
+      prediction.category ? `Category: ${prediction.category}` : "Not confident enough to choose a category",
+      `A category is only filled in when the model is at least ${threshold}% sure. Its top three guesses:`,
+      prediction.suggestions,
+      prediction.explanation,
+    );
+  }
+
+  function showCompany(company) {
+    if (company.categories.length === 0) {
+      show("unsure", "Not enough information", "Add more about what the company does, such as its services.");
+      return;
+    }
+    show(
+      "confident",
+      `Fits: ${company.categories.join(" · ")}`,
+      "Tenders in these categories count as category matches for this company. Top three guesses:",
+      company.suggestions,
+      company.explanation,
+    );
+  }
+
+  function requestBody(form) {
+    const values = Object.fromEntries(new FormData(form));
+    if (form.id === "tender-form") return values;
+    return { ...values, industries: commaList(values.industries), services: commaList(values.services) };
+  }
+
+  async function submit(form) {
+    const button = form.querySelector(".submit");
+    button.disabled = true;
+    try {
+      const response = await fetch(form.dataset.endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody(form)),
+      });
+      if (response.status === 422) throw new Error("Please check the form: a tender needs a title.");
+      if (!response.ok) throw new Error(`The server answered with status ${response.status}.`);
+      const body = await response.json();
+      form.id === "tender-form" ? showTender(body) : showCompany(body);
+    } catch (error) {
+      const message = error instanceof TypeError ? "Cannot reach the server. Is it still running?" : error.message;
+      show("error", message, "");
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  for (const form of document.querySelectorAll("form")) {
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      submit(form);
+    });
+    for (const chip of form.querySelectorAll(".chip")) {
+      chip.addEventListener("click", () => {
+        const values = JSON.parse(chip.dataset.fill);
+        for (const field of form.querySelectorAll("input, textarea")) field.value = values[field.name] || "";
+        form.requestSubmit();
+      });
+    }
+  }
+
+  for (const tab of document.querySelectorAll(".tab")) {
+    tab.addEventListener("click", () => {
+      for (const other of document.querySelectorAll(".tab")) {
+        const selected = other === tab;
+        other.setAttribute("aria-selected", String(selected));
+        document.getElementById(other.dataset.panel).hidden = !selected;
+      }
+      result.hidden = true;
+    });
+  }
+
+  fetch("/model")
+    .then((response) => (response.ok ? response.json() : null))
+    .then((model) => {
+      if (!model) return;
+      const metrics = model.metrics;
+      document.getElementById("model-info").textContent =
+        `Model ${model.version}, trained ${model.trained_at.slice(0, 10)} · ` +
+        `right first time ${percent(metrics.accuracy)}, in top three ${percent(metrics.top_3_accuracy)} ` +
+        `(guessing: ${percent(metrics.baseline_accuracy)})`;
+    })
+    .catch(() => {});
+</script>
+</body>
+</html>

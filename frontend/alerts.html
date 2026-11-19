@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- One light/dark mode for the whole app; runs before the styles to avoid a flash. -->
+    <script src="scripts/theme.js"></script>
+<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Alerts — Tender Scrapper</title>
+    <link rel="stylesheet" href="./css/styles.css">
+
+    <link rel="stylesheet" href="./css/app-theme.css">
+    <link rel="stylesheet" href="./css/responsive-fix.css">
+</head>
+
+<body>
+<header class="app-topbar" id="appTopbar">
+    <form class="topbar-search" id="globalTenderSearch" role="search">
+        <label class="topbar-search-icon" for="globalSearchInput" aria-hidden="true"><svg class="lucide lucide-search" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg></label>
+        <input id="globalSearchInput" name="q" type="search" placeholder="Search tenders, proposals, documents..." autocomplete="off" aria-label="Search tenders, proposals, and documents">
+    </form>
+    <div class="topbar-actions">
+        <a class="topbar-icon-link" href="./alerts.html" aria-label="Open Smart Alerts" title="Smart Alerts">
+            <svg class="lucide lucide-bell topbar-bell-icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
+            <span class="topbar-notification-dot" aria-hidden="true" hidden></span>
+        </a>
+        <a class="topbar-user" href="./profile.html">
+            <span class="topbar-avatar" id="topbarAvatar" aria-hidden="true">U</span>
+            <span class="topbar-username" id="topbarUsername">User</span>
+        </a>
+    </div>
+</header>
+
+
+
+<aside class="sidebar">
+
+    <div class="logo-area">
+        <div class="logo-icon">TS</div>
+        <span>Tender Scrapper</span>
+    </div>
+
+    <button
+        class="mobile-sidebar-close"
+        id="mobileSidebarClose"
+        type="button"
+        aria-label="Close navigation">
+        <svg class="lucide lucide-x" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+    </button>
+
+    <nav class="sidebar-nav" id="sidebarNavigation">
+
+        <a
+            href="./dashboard.html"
+            class="nav-item"
+            data-page="overview">
+            <span class="nav-icon" aria-hidden="true"><svg class="lucide lucide-house" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span>
+            <span>Overview</span>
+        </a>
+
+        <a
+            href="./feed.html"
+            class="nav-item"
+            data-page="feed">
+            <span class="nav-icon" aria-hidden="true"><svg class="lucide lucide-newspaper" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 18h-5"/><path d="M18 14h-8"/><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0v-9a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="10" y="6" rx="1"/></svg></span>
+            <span>Tender Feed</span>
+        </a>
+
+        <a
+            href="./tender-search.html"
+            class="nav-item"
+            data-page="tender-search">
+            <span class="nav-icon" aria-hidden="true"><svg class="lucide lucide-search" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg></span>
+            <span>Search Tender</span>
+        </a>
+
+
+        <a
+            href="./saved-tenders.html" class="nav-item" data-page="saved-tenders"><span class="nav-icon" aria-hidden="true"><svg class="lucide lucide-star" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg></span><span>Saved Tenders</span></a>
+        
+
+    </nav>
+
+    <div class="sidebar-user">
+
+        
+
+        <button
+            id="logoutButton"
+            class="logout-button"
+            type="button">
+            <span><svg class="lucide lucide-log-out" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg></span>
+            <span>Logout</span>
+        </button>
+
+    </div>
+
+</aside>
+
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<button
+    class="mobile-menu-button"
+    id="mobileSidebarToggle"
+    type="button"
+    aria-label="Open navigation"><svg class="lucide lucide-menu" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg></button>
+
+<main class="main-content alerts-page">
+
+    <header class="page-header">
+
+        <div>
+            <h1 class="page-title">Smart Tender Alerts</h1>
+            <p class="page-subtitle">
+                Alerts are generated automatically from your company profile.
+            </p>
+        </div>
+
+        <div class="header-actions">
+            <span class="live-data-badge">
+                <span class="live-dot"></span>
+                Profile driven
+            </span>
+
+            <span class="profile-alert-status warning" id="aiAgentStatus">
+                Checking AI Agent...
+            </span>
+
+            <button
+                class="btn-secondary"
+                id="alertsRefreshBtn"
+                type="button">
+                <svg class="lucide lucide-refresh-cw" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg> Refresh
+            </button>
+        </div>
+
+    </header>
+
+    <div
+        id="alertsMessage"
+        class="state-msg"
+        hidden>
+    </div>
+
+    <section class="card alert-matches-card">
+
+        <div class="card-header">
+
+            <div>
+                <div class="card-title">
+                    Smart Alerts — Matching Tenders
+                </div>
+                <p class="section-helper" id="matchesSubtitle">
+                    Live matches from your company profile. New qualifying matches are marked unread here.
+                </p>
+            </div>
+
+            <span
+                class="alerts-match-count"
+                id="matchesCount">
+                0 matches
+            </span>
+
+        </div>
+
+        <div
+            id="matchesList"
+            class="alert-matches-list">
+            <div class="alert-empty-state">
+                <span class="alert-empty-icon"><svg class="lucide lucide-zap" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z"/></svg></span>
+                <strong>Loading matches</strong>
+                <span>Checking current tenders against your business profile.</span>
+            </div>
+        </div>
+
+    </section>
+<a
+    class="floating-ai-assistant"
+    href="#" data-server-port="9001" data-server-path="/index.html"
+    aria-label="Open AI Assistant">
+    <span class="floating-ai-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" role="img" focusable="false">
+            <path
+                d="M12 3.5a2 2 0 0 1 2 2v.5h.5a2 2 0 1 1 0 4H14v1.5h1a2 2 0 1 1 0 4h-1V17a2 2 0 1 1-4 0v-.5H9a2 2 0 1 1 0-4h1v-1.5H8.5a2 2 0 1 1 0-4H10v-.5a2 2 0 0 1 2-2Z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+            </path>
+            <path
+                d="M18.5 3.5v3m-1.5-1.5h3M5.5 16.5v3M4 18h3"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round">
+            </path>
+        </svg>
+    </span>
+    <span class="floating-ai-label">AI Assistant</span>
+</a>
+
+</main>
+
+<script type="module" src="./scripts/cookies.js"></script>
+<script type="module" src="./scripts/navigation.js"></script>
+<script type="module" src="./scripts/alerts.js"></script>
+
+</body>
+</html>

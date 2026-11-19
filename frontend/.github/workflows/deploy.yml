@@ -1,0 +1,123 @@
+name: Deploy Frontend
+
+concurrency:
+  group: tender-scrapper-frontend-deploy
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - Frontend CI
+    types:
+      - completed
+    branches:
+      - main
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: self-hosted
+    env:
+      USER_SERVER_PORT: ${{ secrets.USER_SERVER_PORT }}
+
+    steps:
+      - name: Checkout frontend
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Validate USER_SERVER_PORT
+        run: |
+          set -euo pipefail
+          if [[ ! "${USER_SERVER_PORT:-}" =~ ^[0-9]{1,5}$ ]] || (( USER_SERVER_PORT < 1 || USER_SERVER_PORT > 65535 )); then
+            echo "USER_SERVER_PORT must be set to a valid TCP port (1-65535)."
+            exit 1
+          fi
+          docker compose config --quiet
+
+      - name: Build frontend image without cache
+        run: |
+          set -euo pipefail
+          docker compose build --no-cache
+
+      - name: Deploy frontend
+        run: |
+          set -euo pipefail
+          # Compose recreates the existing service only after the new image built successfully.
+          docker compose up -d --force-recreate
+
+      - name: Check Docker
+        run: |
+          docker ps
+
+      - name: Verify dashboard page and assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          set -x
+          sleep 8
+          BASE_URL="http://localhost:${USER_SERVER_PORT}"
+          check_url() {
+            local path="$1"
+            local output="${2:-/dev/null}"
+            if ! curl --connect-timeout 5 --max-time 20 -fsS "$BASE_URL/$path" -o "$output"; then
+              echo "::error::HTTP check failed: $BASE_URL/$path"
+              docker logs --tail 80 baloyi-frontend || true
+              return 1
+            fi
+            echo "PASS URL $path"
+          }
+          check_contains() {
+            local file="$1" expected="$2"
+            if ! grep -Fq "$expected" "$file"; then
+              echo "::error::Missing expected text in $file: $expected"
+              return 1
+            fi
+            echo "PASS CONTENT $expected"
+          }
+          check_asset() {
+            local file="$1" asset="$2"
+            if ! grep -Fq "$asset" "$file"; then
+              echo "::error::Page $file does not reference $asset"
+              return 1
+            fi
+            check_url "$asset"
+          }
+          check_url "profile.html" /tmp/profile-smoke.html
+          check_contains /tmp/profile-smoke.html "Tender Scrapper"
+          # index.html is the public landing page; the dashboard is dashboard.html.
+          check_url "" /tmp/landing-smoke.html
+          check_contains /tmp/landing-smoke.html 'id="landingBoard"'
+          check_url "dashboard.html" /tmp/dashboard-smoke.html
+          check_url "login.html" /tmp/login-smoke.html
+          check_contains /tmp/login-smoke.html 'id="loginForm"'
+          check_contains /tmp/dashboard-smoke.html "Tender Scrapper | Dashboard"
+          for asset in css/styles.css css/overview-dashboard.css css/app-theme.css scripts/navigation.js scripts/cookies.js scripts/main.js scripts/overview-layout.js; do
+            check_asset /tmp/dashboard-smoke.html "$asset"
+          done
+          check_url "application-tracker.html" /tmp/application-tracker-smoke.html
+          check_contains /tmp/application-tracker-smoke.html "Application Tracker | Tender Scrapper"
+          check_contains /tmp/application-tracker-smoke.html 'id="trackerApplications"'
+          if grep -Fq 'id="trackerCreateForm"' /tmp/application-tracker-smoke.html; then
+            echo "::error::Manual tracker creation form should not be present; tenders are added automatically when saved."
+            exit 1
+          fi
+          echo "PASS CONTENT automatic tracker workflow (no manual create form)"
+          for asset in css/styles.css css/app-theme.css css/application-tracker.css scripts/navigation.js scripts/cookies.js scripts/application-tracker.js; do
+            check_asset /tmp/application-tracker-smoke.html "$asset"
+          done
+          for asset in scripts/api.js scripts/config.js scripts/utils.js scripts/shared-utils.js; do
+            check_url "$asset"
+          done
+          check_contains /tmp/dashboard-smoke.html 'id="kpiTotalTenders"'
+          check_contains /tmp/dashboard-smoke.html 'id="recentTenderList"'
+          for page in feed.html tender-search.html saved-tenders.html alerts.html tender.html; do
+            page_file="/tmp/$page"
+            check_url "$page" "$page_file"
+            check_contains "$page_file" "Tender Scrapper"
+            check_contains "$page_file" "scripts/navigation.js"
+          done
+          for asset in css/app-theme.css scripts/navigation.js scripts/cookies.js scripts/config.js scripts/api.js; do
+            check_url "$asset"
+          done

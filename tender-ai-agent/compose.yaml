@@ -1,0 +1,74 @@
+name: tender-ai-agent
+
+# Every container keeps at most 3 x 10 MB of logs; older entries are overwritten.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  agent-api:
+    logging: *default-logging
+    image: ghcr.io/yglelani/tender-ai-agent:latest
+    container_name: tender-agent-api
+    restart: unless-stopped
+
+    environment:
+      AZURE_AI_ENDPOINT: ${AZURE_AI_ENDPOINT}
+      AZURE_AI_API_KEY: ${AZURE_AI_API_KEY}
+      AZURE_AI_DEPLOYMENT: ${AZURE_AI_DEPLOYMENT}
+      AZURE_AI_TEMPERATURE: "0"
+      EMBED_MODEL: ${EMBED_MODEL:-text-embedding-3-small}
+      # Only if the embedding model is deployed on a different Azure resource than Mistral
+      AZURE_EMBED_ENDPOINT: ${AZURE_EMBED_ENDPOINT:-}
+      AZURE_EMBED_API_KEY: ${AZURE_EMBED_API_KEY:-}
+      EMBED_TIMEOUT: ${EMBED_TIMEOUT:-8}
+      LLM_TIMEOUT: ${LLM_TIMEOUT:-30}
+      # Defaults match the container names on tender-scrapping-net, so a missing
+      # value never becomes a blank address.
+      CLIENT_API_URL: ${CLIENT_API_URL:-http://client-api:8001}
+      AI_SERVICE_URL: ${AI_SERVICE_URL:-http://ai:8002}
+      # Smart Alerts: the dashboard and chat show its matches (the user's own sign-in is sent).
+      ALERTS_API_URL: ${ALERTS_API_URL:-http://alerts-api:9005}
+      # The ML category model. When it is unreachable, search works as before.
+      TENDER_ML_URL: ${TENDER_ML_URL:-http://tender-ml:9004}
+      # Sent as X-Internal-Key; must match AI_SERVICE_API_KEY in tender-scrapping-database.
+      AI_SERVICE_API_KEY: ${AI_SERVICE_API_KEY:-}
+      # Sent by Signup-api to /internal/accounts/delete; must match ACCOUNT_DELETION_KEY there.
+      ACCOUNT_DELETION_KEY: ${ACCOUNT_DELETION_KEY:-}
+      # Lets an operator start a full tender re-index (X-Admin-Key header). Empty = switched off.
+      AGENT_ADMIN_KEY: ${AGENT_ADMIN_KEY:-}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      SEMANTIC_CACHE_THRESHOLD: ${SEMANTIC_CACHE_THRESHOLD:-0.95}
+      TENDER_SYNC_INTERVAL: ${TENDER_SYNC_INTERVAL:-21600}
+      # Sign-in tokens are verified by the Login API (musiwalo-jwt-api) on the shared
+      # network, so this service needs no copy of its JWT secret.
+      LOGIN_API_URL: ${LOGIN_API_URL:-http://jwt-api:8006}
+      AGENT_DATA_DIR: /data
+      AZURE_AI_VISION_DEPLOYMENT: ${AZURE_AI_VISION_DEPLOYMENT:-}
+      AGENT_MAX_ITERATIONS: "4"
+      AGENT_TIMEOUT_SECONDS: "45"
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://129.151.181.87:8009,http://129.151.181.87:9001}
+      # LangSmith tracing stays off. Traces would copy chat messages and document
+      # text to a third-party service that the Privacy Policy does not list.
+      LANGSMITH_TRACING: "false"
+      LANGCHAIN_TRACING_V2: "false"
+
+    ports:
+      - "9000:9000"
+
+    # Uploaded onboarding documents + their SQLite index
+    volumes:
+      - agent-data:/data
+
+    networks:
+      - tender-scrapping-net
+
+volumes:
+  agent-data:
+
+networks:
+  tender-scrapping-net:
+    external: true
+    name: tender-scrapping-net

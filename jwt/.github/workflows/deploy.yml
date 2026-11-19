@@ -1,0 +1,88 @@
+name: Deploy Login API
+
+on:
+  workflow_run:
+    workflows: ["Build and Test"]
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Validate deployment secrets
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          if [ -z "$JWT_SECRET" ]; then
+            echo "JWT_SECRET GitHub Actions secret is missing or empty."
+            exit 1
+          fi
+
+          echo "JWT_SECRET is present."
+
+      - name: Create environment file
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          SESSION_TIMEOUT_HOURS: ${{ secrets.SESSION_TIMEOUT_HOURS }}
+        run: |
+          : > .env
+
+          if [ -n "$DATABASE_URL" ]; then
+            printf 'DATABASE_URL=%s\n' "$DATABASE_URL" >> .env
+          fi
+
+          printf 'JWT_SECRET=%s\n' "$JWT_SECRET" >> .env
+
+          SESSION_TIMEOUT_HOURS="${SESSION_TIMEOUT_HOURS:-2}"
+          if ! awk -v value="$SESSION_TIMEOUT_HOURS" 'BEGIN { if (value ~ /^([0-9]+([.][0-9]*)?|[.][0-9]+)$/ && value + 0 > 0) exit 0; exit 1 }'; then
+            echo "SESSION_TIMEOUT_HOURS must be a positive, finite number of hours."
+            exit 1
+          fi
+          printf 'SESSION_TIMEOUT_HOURS=%s\n' "$SESSION_TIMEOUT_HOURS" >> .env
+          chmod 600 .env
+
+      - name: Deploy Login API
+        run: |
+          docker rm -f jwt-api || true
+          docker compose up -d --build
+
+      - name: Show container status
+        run: |
+          docker ps --filter "name=jwt-api"
+
+      - name: Wait for Login API
+        run: |
+          echo "Waiting for Login API to become ready..."
+
+          for i in {1..12}; do
+            # Ensure your FastAPI app has a /health endpoint, or change this to /
+            if curl -fsS http://localhost:8006/health; then
+              echo ""
+              echo "Login API is healthy!"
+              exit 0
+            fi
+
+            echo "Attempt $i failed. Waiting 5 seconds..."
+            sleep 5
+          done
+
+          echo "Login API did not become healthy."
+          echo "Container logs:"
+          docker logs --tail 100 jwt-api
+          exit 1
+
+      - name: Check Login API
+        run: |
+          curl -f http://localhost:8006/

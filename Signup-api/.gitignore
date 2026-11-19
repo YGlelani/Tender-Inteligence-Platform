@@ -1,0 +1,34 @@
+# Secrets: environment files stay on the machine that uses them
+.env
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Test and tool caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Local SQLite data
+data/
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.sqlite3
+
+# Logs
+*.log
+
+# Editor and OS files
+.vscode/
+.idea/
+.problems/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- One light/dark mode for the whole app; runs before the styles to avoid a flash. -->
+    <script src="scripts/theme.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7fb">
+    <title>Application Tracker | Tender Scrapper</title>
+    <link rel="stylesheet" href="./css/styles.css">
+
+    <link rel="stylesheet" href="./css/application-tracker.css">
+    <script type="module" src="./scripts/navigation.js"></script>
+
+    <link rel="stylesheet" href="./css/app-theme.css">
+    <link rel="stylesheet" href="./css/responsive-fix.css">
+</head>
+<body>
+<header class="app-topbar" id="appTopbar">
+    <form class="topbar-search" id="globalTenderSearch" role="search" action="./tender-search.html" method="get">
+        <label class="topbar-search-icon" for="globalSearchInput" aria-hidden="true"><svg class="lucide lucide-search" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg></label>
+        <input id="globalSearchInput" name="q" type="search" placeholder="Search tenders, proposals, documents..." autocomplete="off" aria-label="Search tenders, proposals, and documents">
+    </form>
+    <div class="topbar-actions">
+        <a class="topbar-icon-link" href="./alerts.html" aria-label="Open Smart Alerts" title="Smart Alerts">
+            <svg class="lucide lucide-bell topbar-bell-icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
+            <span class="topbar-notification-dot" aria-hidden="true" hidden></span>
+        </a>
+        <a class="topbar-user" href="./profile.html">
+            <span class="topbar-avatar" id="topbarAvatar" aria-hidden="true">U</span>
+            <span class="topbar-username" id="topbarUsername">User</span>
+        </a>
+    </div>
+</header>
+<aside class="sidebar">
+    <div class="logo-area"><div class="logo-icon">TS</div><span>Tender Scrapper</span></div>
+    <button class="mobile-sidebar-close" id="mobileSidebarClose" type="button" aria-label="Close navigation"><svg class="lucide lucide-x" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    <nav class="sidebar-nav" id="sidebarNavigation">
+        <a href="./dashboard.html" class="nav-item" data-page="overview"><span class="nav-icon" aria-hidden="true"><svg class="lucide lucide-house" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><span>Overview</span></a>
+        <a href="./feed.html" class="nav-item" data-page="feed"><span class="nav-icon" aria-hidden="true"><svg class="lucide lucide-newspaper" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 18h-5"/><path d="M18 14h-8"/><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0v-9a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="10" y="6" rx="1"/></svg></span><span>Tender Feed</span></a>
+        <a href="./tender-search.html" class="nav-item" data-page="tender-search"><span class="nav-icon" aria-hidden="true"><svg class="lucide lucide-search" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg></span><span>Search Tender</span></a>
+        <a href="./saved-tenders.html" class="nav-item" data-page="saved-tenders"><span class="nav-icon" aria-hidden="true"><svg class="lucide lucide-star" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg></span><span>Saved Tenders</span></a>
+        <a href="./application-tracker.html" class="nav-item" data-page="application-tracker" aria-current="page"><span class="nav-icon" aria-hidden="true"><svg class="lucide lucide-clipboard-list" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg></span><span>Application Tracker</span></a>
+        
+    </nav>
+    <div class="sidebar-user"><button id="logoutButton" class="logout-button" type="button"><span><svg class="lucide lucide-log-out" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg></span><span>Logout</span></button></div>
+</aside>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+<button class="mobile-menu-button" id="mobileSidebarToggle" type="button" aria-label="Open navigation"><svg class="lucide lucide-menu" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg></button>
+<main class="main-content tracker-page">
+    <header class="tracker-heading">
+        <div><p class="tracker-eyebrow">YOUR TENDER PIPELINE</p><h1>Application Tracker</h1><p>Closing dates come from tender details. Submission dates are recorded automatically when you mark an application as Submitted.</p></div>
+        <button id="trackerRefresh" class="tracker-secondary-button" type="button"><svg class="lucide lucide-refresh-cw" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg> Refresh</button>
+    </header>
+    <div id="trackerNotice" class="tracker-notice" role="status" aria-live="polite" hidden></div>
+<div id="trackerConfirmOverlay" class="tracker-confirm-overlay" hidden><section class="tracker-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="trackerConfirmTitle" aria-describedby="trackerConfirmDescription" tabindex="-1"><div class="tracker-confirm-icon" aria-hidden="true">!</div><h2 id="trackerConfirmTitle">Remove application?</h2><p id="trackerConfirmDescription">This removes the tender from your tracker and from Saved Tenders, including its status and notes. This cannot be undone.</p><div class="tracker-confirm-actions"><button id="trackerConfirmCancel" class="tracker-confirm-cancel" type="button">Cancel</button><button id="trackerConfirmRemove" class="tracker-confirm-remove" type="button">Remove application</button></div></section></div>
+    <section class="tracker-stat-grid" aria-label="Application summary">
+        <article class="tracker-stat"><span>Total tracked</span><strong id="statTotal">—</strong><small>Applications in your pipeline</small></article>
+        <article class="tracker-stat"><span>Preparing</span><strong id="statPreparing">—</strong><small>Work in progress</small></article>
+        <article class="tracker-stat"><span>Submitted</span><strong id="statSubmitted">—</strong><small>Sent for consideration</small></article>
+        <article class="tracker-stat"><span>Won</span><strong id="statWon">—</strong><small>Successful applications</small></article>
+    </section>
+    
+    <section class="tracker-panel">
+        <div class="tracker-list-heading"><div><h2>Your applications</h2><p id="trackerListDescription">Applications linked to your account.</p></div>
+            <div class="tracker-filters">
+                <label class="visually-hidden" for="trackerStatusFilter">Filter by status</label>
+                <select id="trackerStatusFilter"><option value="">All statuses</option><option>Interested</option><option>Preparing</option><option>Submitted</option><option>Won</option><option>Lost</option></select>
+                <label class="visually-hidden" for="trackerSearch">Search applications</label>
+                <input id="trackerSearch" type="search" placeholder="Search title or reference">
+            </div>
+        </div>
+        <div id="trackerApplications" class="tracker-application-list"><div class="tracker-empty">Loading your applications…</div></div>
+    </section>
+</main>
+<script type="module" src="./scripts/cookies.js"></script>
+<script type="module" src="./scripts/application-tracker.js"></script>
+</body>
+</html>

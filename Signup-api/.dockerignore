@@ -1,0 +1,23 @@
+# Secrets must never enter the build context
+.env
+.env.*
+
+# Version control and CI
+.git/
+.gitignore
+.github/
+
+# Python artefacts and caches
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Local data, logs, tests and docs are not needed in the image
+data/
+*.db
+*.log
+test_*.py
+README.md

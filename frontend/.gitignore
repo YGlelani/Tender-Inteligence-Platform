@@ -1,0 +1,16 @@
+# Local environment configuration
+.env
+.env.*
+# Local tooling
+.DS_Store
+.vscode/
+
+# Generated at runtime by the container entrypoint; do not commit
+runtime-config.js
+
+# Environment example file is kept out of this repository
+.env.example
+
+# Local editor and tool files
+.claude/
+CLAUDE.md

@@ -1,0 +1,40 @@
+# Secrets / local environment
+.env
+.env.*
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+
+# Test, coverage and linter caches
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+.mypy_cache/
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Editor / IDE settings (machine-specific)
+.vscode/
+.idea/
+
+# Code scanner reports
+.problems/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local editor and tool files
+.claude/
+CLAUDE.md

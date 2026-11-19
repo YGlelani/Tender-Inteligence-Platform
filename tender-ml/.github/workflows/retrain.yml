@@ -1,0 +1,44 @@
+name: Retrain Tender ML
+on:
+  schedule:
+    # Every Monday at 03:00 UTC, so the model learns from the past week's tenders.
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: tender-ml-production
+  cancel-in-progress: false
+jobs:
+  retrain:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: deploy-src
+          clean: false
+      - name: Train model
+        id: train
+        working-directory: deploy-src
+        # Exit code 2 means the saved model scored better and was kept.
+        run: |
+          set +e
+          docker compose run --rm tender-ml python train.py
+          code=$?
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          [ $code -eq 0 ] || [ $code -eq 2 ]
+      - name: Load the new model
+        if: steps.train.outputs.code == '0'
+        working-directory: deploy-src
+        run: docker compose restart tender-ml
+      - name: Verify health
+        working-directory: deploy-src
+        run: |
+          for i in {1..12}; do
+            if curl -fsS http://localhost:9004/health; then exit 0; fi
+            sleep 5
+          done
+          docker logs --tail 120 tender-ml
+          exit 1

@@ -1,0 +1,21 @@
+name: tender-ai-frontend
+
+services:
+  frontend:
+    image: ghcr.io/yglelani/tender-ai-frontend:latest
+    container_name: tender-ai-frontend
+    restart: unless-stopped
+    ports:
+      - "9001:80"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - tender-scrapping-net
+
+networks:
+  tender-scrapping-net:
+    external: true
+    name: tender-scrapping-net

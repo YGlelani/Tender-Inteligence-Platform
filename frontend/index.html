@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tender Scrapper | Find government tenders that fit your business</title>
+    <meta name="description" content="Tender Scrapper collects South African government tenders from the eTender Portal, matches them to your business and reminds you before the tenders you save close.">
+
+    <!-- A returning user who is still logged in goes straight to the dashboard. -->
+    <script src="scripts/session-check.js"></script>
+    <script src="scripts/landing-redirect.js"></script>
+    <!-- One light/dark mode for the whole app; runs before the styles to avoid a flash. -->
+    <script src="scripts/theme.js"></script>
+
+    <link rel="stylesheet" href="./css/landing.css">
+</head>
+<body>
+    <a class="lp-skip" href="#main">Skip to content</a>
+
+    <header class="lp-header">
+        <div class="lp-wrap lp-header-inner">
+            <a class="lp-brand" href="./">
+                <span class="lp-logo" aria-hidden="true">TS</span>
+                <span>Tender Scrapper</span>
+            </a>
+            <nav class="lp-nav" aria-label="Main">
+                <a href="#try">Search tenders</a>
+                <a href="#how-it-works">How it works</a>
+                <a href="#features">Features</a>
+                <a href="#provinces">Tenders by province</a>
+                <a href="#questions">Questions</a>
+            </nav>
+            <div class="lp-header-actions">
+                <button class="lp-theme" id="lpTheme" type="button" aria-label="Switch to dark mode"></button>
+                <a class="lp-link" href="./login.html">Log in</a>
+                <a class="lp-button lp-button-small" data-signup href="#">Create account</a>
+            </div>
+        </div>
+    </header>
+
+    <main id="main">
+
+        <!-- Hero -->
+        <section class="lp-hero">
+            <div class="lp-wrap lp-hero-grid">
+                <div class="lp-hero-copy">
+                    <p class="lp-pulse" id="lpPulse" hidden>
+                        <span class="lp-pulse-dot" aria-hidden="true"></span>
+                        <span id="lpPulseText"></span>
+                    </p>
+                    <h1>Find government tenders that fit your business, before they close.</h1>
+                    <p class="lp-lead">
+                        Tender Scrapper collects South African government tenders in one place,
+                        matches them to your company profile and reminds you before the tenders you save close,
+                        so you spend your time bidding instead of searching.
+                    </p>
+                    <div class="lp-actions">
+                        <a class="lp-button lp-button-signal" data-signup href="#">Create your account</a>
+                    </div>
+                    <ul class="lp-assurances">
+                        <li>Tenders from the National Treasury eTender Portal</li>
+                        <li>Matches scored against your own business</li>
+                        <li>Reminders before your saved tenders close</li>
+                    </ul>
+                </div>
+
+                <div class="lp-showcase" aria-label="A look at Tender Scrapper">
+                    <div class="lp-window">
+                        <div class="lp-window-bar" aria-hidden="true">
+                            <span></span><span></span><span></span>
+                            <span class="lp-window-title">Tender Scrapper</span>
+                        </div>
+                        <section class="lp-board" id="landingBoard" aria-labelledby="lpBoardTitle">
+                            <div class="lp-board-head">
+                                <h2 id="lpBoardTitle">Closing soonest</h2>
+                                <span class="lp-board-note">Live from the tender database</span>
+                            </div>
+                            <ol class="lp-board-list" id="lpBoardList" aria-live="polite">
+                                <li class="lp-board-empty">Loading open tenders…</li>
+                            </ol>
+                        </section>
+                    </div>
+
+                    <div class="lp-float lp-float-match" aria-hidden="true">
+                        <span class="lp-ring" style="--score: 92">92%</span>
+                        <span>
+                            <strong>New Smart Alert <span class="lp-example">Example</span></strong>
+                            <small>Matches your industry and province</small>
+                        </span>
+                    </div>
+
+                    <div class="lp-float lp-float-reminder" id="lpReminder" aria-hidden="true" hidden>
+                        <span class="lp-float-icon" id="lpReminderIcon"></span>
+                        <span>
+                            <strong id="lpReminderTitle">Closing soon</strong>
+                            <small id="lpReminderText"></small>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Try it: live search -->
+        <section class="lp-section lp-try" id="try" aria-labelledby="lpTryTitle">
+            <div class="lp-wrap">
+                <div class="lp-try-head">
+                    <h2 class="lp-section-title" id="lpTryTitle">Search open tenders now</h2>
+                    <p>No account needed. Type what your business does or pick a province.</p>
+                </div>
+
+                <form class="lp-search" id="lpSearch" role="search">
+                    <label class="lp-visually-hidden" for="lpSearchQ">What does your business do?</label>
+                    <input id="lpSearchQ" name="q" type="search" placeholder="For example security, cleaning, IT, construction" autocomplete="off" maxlength="200">
+                    <label class="lp-visually-hidden" for="lpSearchProvince">Province</label>
+                    <select id="lpSearchProvince" name="province">
+                        <option value="">All provinces</option>
+                        <option>Eastern Cape</option>
+                        <option>Free State</option>
+                        <option>Gauteng</option>
+                        <option>KwaZulu-Natal</option>
+                        <option>Limpopo</option>
+                        <option>Mpumalanga</option>
+                        <option>Northern Cape</option>
+                        <option>North West</option>
+                        <option>Western Cape</option>
+                    </select>
+                    <label class="lp-visually-hidden" for="lpSearchCategory">Industry</label>
+                    <select id="lpSearchCategory" name="category">
+                        <option value="">All industries</option>
+                    </select>
+                    <button class="lp-button" type="submit">Search</button>
+                </form>
+
+                <div class="lp-chips" aria-label="Try a search">
+                    <button type="button" data-try="security">Security</button>
+                    <button type="button" data-try="cleaning">Cleaning</button>
+                    <button type="button" data-try="construction">Construction</button>
+                    <button type="button" data-try="IT">IT services</button>
+                    <button type="button" data-try="catering">Catering</button>
+                    <button type="button" data-try="maintenance">Maintenance</button>
+                </div>
+
+                <div class="lp-results" id="lpResults" aria-live="polite">
+                    <p class="lp-results-hint">Results appear here.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Problem -->
+        <section class="lp-section lp-problem" aria-labelledby="lpProblemTitle">
+            <div class="lp-wrap lp-problem-grid">
+                <h2 class="lp-section-title" id="lpProblemTitle">Winning tenders starts with finding them in time</h2>
+                <div class="lp-problem-list">
+                    <p><strong>Hundreds of new tenders every week.</strong> Checking portals by hand means the right one is easy to miss.</p>
+                    <p><strong>Deadlines are short.</strong> By the time you find a tender, there may be days left to prepare your bid.</p>
+                    <p><strong>Documents expire.</strong> An out-of-date tax clearance or B-BBEE certificate can disqualify a good bid.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- How it works -->
+        <section class="lp-section" id="how-it-works" aria-labelledby="lpHowTitle">
+            <div class="lp-wrap">
+                <h2 class="lp-section-title" id="lpHowTitle">How it works</h2>
+                <ol class="lp-steps">
+                    <li>
+                        <h3>Tell us about your business</h3>
+                        <p>Add your industry, the provinces you work in and your business documents. It takes a few minutes.</p>
+                    </li>
+                    <li>
+                        <h3>Get tenders that match</h3>
+                        <p>Smart Alerts scores every new tender against your profile and shows the ones worth your time.</p>
+                    </li>
+                    <li>
+                        <h3>Save, track and submit</h3>
+                        <p>Save a tender to follow it in your Application Tracker, from Interested to Submitted, with reminders before it closes.</p>
+                    </li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- Features with small product previews -->
+        <section class="lp-section lp-section-alt" id="features" aria-labelledby="lpFeaturesTitle">
+            <div class="lp-wrap">
+                <h2 class="lp-section-title" id="lpFeaturesTitle">Everything you need to bid on time</h2>
+
+                <div class="lp-tabs" id="lpTabs">
+                    <div class="lp-tablist" role="tablist" aria-label="Features">
+                        <button class="lp-tab" type="button" role="tab" id="lpTab1" aria-controls="lpPanel1" aria-selected="true">
+                            <strong>Smart Alerts find the tenders that fit</strong>
+                            <span>Every new tender is scored against your company profile and documents, with the reasons it matched.</span>
+                        </button>
+                        <button class="lp-tab" type="button" role="tab" id="lpTab2" aria-controls="lpPanel2" aria-selected="false" tabindex="-1">
+                            <strong>Track every bid to submission</strong>
+                            <span>Saved tenders land in your Application Tracker with their deadline and your notes.</span>
+                        </button>
+                        <button class="lp-tab" type="button" role="tab" id="lpTab3" aria-controls="lpPanel3" aria-selected="false" tabindex="-1">
+                            <strong>Reminders before it is too late</strong>
+                            <span>For tenders you save: in the app and by email, 3 days and 1 day before closing, and when a date changes.</span>
+                        </button>
+                        <button class="lp-tab" type="button" role="tab" id="lpTab4" aria-controls="lpPanel4" aria-selected="false" tabindex="-1">
+                            <strong>Keep your documents tender-ready</strong>
+                            <span>See which compliance documents are about to expire, before they cost you a bid.</span>
+                        </button>
+                    </div>
+
+                    <div class="lp-panels">
+                        <div class="lp-panel" role="tabpanel" id="lpPanel1" aria-labelledby="lpTab1" tabindex="0">
+                            <p class="lp-panel-title">Your matches today <span class="lp-example">Example</span></p>
+                            <div class="lp-mock-match">
+                                <span class="lp-ring lp-ring-small" style="--score: 92">92%</span>
+                                <span><strong>IT support services for district offices</strong><small>Gauteng, IT services, no CIDB grading needed</small></span>
+                            </div>
+                            <div class="lp-mock-match">
+                                <span class="lp-ring lp-ring-small" style="--score: 84">84%</span>
+                                <span><strong>Network cabling at regional hospitals</strong><small>Gauteng, electrical, B-BBEE level 1 preferred</small></span>
+                            </div>
+                            <div class="lp-mock-match">
+                                <span class="lp-ring lp-ring-small" style="--score: 76">76%</span>
+                                <span><strong>Supply of laptops and docking stations</strong><small>Limpopo, IT equipment</small></span>
+                            </div>
+                        </div>
+                        <div class="lp-panel" role="tabpanel" id="lpPanel2" aria-labelledby="lpTab2" tabindex="0" hidden>
+                            <p class="lp-panel-title">Application Tracker <span class="lp-example">Example</span></p>
+                            <div class="lp-mock-board">
+                                <div><span class="lp-stage">Interested</span><i>Road maintenance, KZN<small>Closes 15 Nov</small></i><i>Office cleaning<small>Closes 21 Nov</small></i></div>
+                                <div><span class="lp-stage lp-stage-progress">Preparing</span><i>Laptops and docking stations<small>Closes tomorrow</small></i></div>
+                                <div><span class="lp-stage lp-stage-done">Submitted</span><i>Security services<small>Submitted 3 Nov</small></i></div>
+                            </div>
+                        </div>
+                        <div class="lp-panel" role="tabpanel" id="lpPanel3" aria-labelledby="lpTab3" tabindex="0" hidden>
+                            <p class="lp-panel-title">Notifications <span class="lp-example">Example</span></p>
+                            <div class="lp-mock-note lp-mock-note-urgent"><strong>Closes tomorrow at 11:00</strong><small>Supply of laptops and docking stations</small></div>
+                            <div class="lp-mock-note"><strong>Closing date changed</strong><small>Road maintenance now closes on 28 Nov</small></div>
+                            <div class="lp-mock-note"><strong>Closes in 3 days</strong><small>Network cabling at regional hospitals</small></div>
+                        </div>
+                        <div class="lp-panel" role="tabpanel" id="lpPanel4" aria-labelledby="lpTab4" tabindex="0" hidden>
+                            <p class="lp-panel-title">Business documents <span class="lp-example">Example</span></p>
+                            <div class="lp-mock-doc"><span>Tax compliance status</span><em class="ok">Valid</em></div>
+                            <div class="lp-mock-doc"><span>B-BBEE certificate</span><em class="warn">Expires in 12 days</em></div>
+                            <div class="lp-mock-doc"><span>CSD registration report</span><em class="ok">Valid</em></div>
+                            <div class="lp-mock-doc"><span>CIDB grading</span><em class="ok">Valid</em></div>
+                        </div>
+                    </div>
+                </div>
+
+                <dl class="lp-features-more">
+                    <div>
+                        <dt>Search every tender</dt>
+                        <dd>Filter by province, industry, organisation and status. Closed tenders stay out of the way.</dd>
+                    </div>
+                    <div>
+                        <dt>AI assistant</dt>
+                        <dd>Ask questions about a tender and get help planning your bid.</dd>
+                    </div>
+                    <div>
+                        <dt>Light and dark mode</dt>
+                        <dd>Comfortable to use all day, on your computer or your phone.</dd>
+                    </div>
+                </dl>
+            </div>
+        </section>
+
+        <!-- Live numbers by province -->
+        <section class="lp-section lp-data" id="provinces" aria-labelledby="lpDataTitle">
+            <div class="lp-wrap lp-data-grid">
+                <div>
+                    <h2 class="lp-section-title" id="lpDataTitle">Tenders across all nine provinces</h2>
+                    <p class="lp-data-lead">These numbers come straight from the Tender Scrapper database and update as new tenders are collected. Choose a province to see its open tenders.</p>
+                    <dl class="lp-figures" id="lpFigures" hidden>
+                        <div><dt>Open right now</dt><dd id="lpFigOpen">–</dd></div>
+                        <div><dt>Closing this week</dt><dd id="lpFigWeek">–</dd></div>
+                        <div><dt>Published in the last 30 days</dt><dd id="lpFigMonth">–</dd></div>
+                    </dl>
+                </div>
+                <div class="lp-map-wrap">
+                    <div class="lp-map" id="lpProvinces" role="list" aria-label="Tenders by province">
+                        <p class="lp-board-empty">Loading tenders by province…</p>
+                    </div>
+                    <p class="lp-map-legend" aria-hidden="true">
+                        <span>Fewer tenders</span>
+                        <span class="lp-map-scale"></span>
+                        <span>More tenders</span>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Questions -->
+        <section class="lp-section lp-section-alt" id="questions" aria-labelledby="lpFaqTitle">
+            <div class="lp-wrap lp-faq-grid">
+                <h2 class="lp-section-title" id="lpFaqTitle">Questions</h2>
+                <div class="lp-faq">
+                    <details>
+                        <summary>Where do the tenders come from?</summary>
+                        <p>From the National Treasury eTender Portal (etenders.gov.za), where national and provincial departments, municipalities and state-owned entities publish their tenders.</p>
+                    </details>
+                    <details>
+                        <summary>How often is the list updated?</summary>
+                        <p>New tenders are collected regularly throughout the day. Closed tenders are hidden automatically, so what you see is still open.</p>
+                    </details>
+                    <details>
+                        <summary>How does matching work?</summary>
+                        <p>You tell us your industry, the provinces you work in, your keywords and your documents. Smart Alerts scores each tender against that profile and shows you the reasons for the score.</p>
+                    </details>
+                    <details>
+                        <summary>Can I choose which emails I get?</summary>
+                        <p>Yes. In your profile you can turn each type of notification on or off, in the app and by email.</p>
+                    </details>
+                    <details>
+                        <summary>Does Tender Scrapper submit bids for me?</summary>
+                        <p>No. It helps you find tenders, prepare and keep track. You submit your bid to the organisation as the tender notice describes.</p>
+                    </details>
+                </div>
+            </div>
+        </section>
+
+        <!-- Call to action -->
+        <section class="lp-cta" aria-labelledby="lpCtaTitle">
+            <div class="lp-wrap lp-cta-inner">
+                <div>
+                    <h2 id="lpCtaTitle">Your next contract could be closing this week</h2>
+                    <p>Create your account, add your business profile and see the tenders that match you today.</p>
+                </div>
+                <div class="lp-actions">
+                    <a class="lp-button lp-button-signal" data-signup href="#">Create your account</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="lp-footer">
+        <div class="lp-wrap lp-footer-inner">
+            <span class="lp-brand lp-brand-small">
+                <span class="lp-logo" aria-hidden="true">TS</span>
+                <span>Tender Scrapper</span>
+            </span>
+            <nav aria-label="Footer">
+                <a href="#features">Features</a>
+                <a href="#questions">Questions</a>
+                <a href="./privacy.html">Privacy</a>
+            </nav>
+            <small>&copy; <span id="lpYear">2026</span> Tender Scrapper</small>
+        </div>
+    </footer>
+
+    <!-- On phones: a sign-up bar that appears once the top section is out of view -->
+    <div class="lp-sticky-cta" id="lpStickyCta" aria-hidden="true">
+        <span>Find tenders that fit your business</span>
+        <a class="lp-button lp-button-signal lp-button-small" data-signup href="#" tabindex="-1">Create account</a>
+    </div>
+
+    <script type="module" src="./scripts/landing.js"></script>
+</body>
+</html>

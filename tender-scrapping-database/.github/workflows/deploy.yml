@@ -1,0 +1,109 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io \
+            -u "${{ github.actor }}" \
+            --password-stdin
+
+      - name: Pull latest code
+        run: |
+          set -euo pipefail
+          cd ~/actions-runner-database/_work/tender-scrapping-database/tender-scrapping-database/
+          git fetch origin main
+          git reset --hard origin/main
+          test "$(git branch --show-current)" = "main" || {
+            echo "Refusing deploy: checkout is not on main" >&2
+            exit 1
+          }
+
+      - name: Migrate production PostgreSQL data to SQLite before API cutover
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD_ENCODED: ${{ secrets.POSTGRES_PASSWORD_ENCODED }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        run: |
+          set -euo pipefail
+          cd ~/actions-runner-database/_work/tender-scrapping-database/tender-scrapping-database/
+
+          : "${POSTGRES_USER:?Missing GitHub secret POSTGRES_USER}"
+          : "${POSTGRES_PASSWORD_ENCODED:?Missing GitHub secret POSTGRES_PASSWORD_ENCODED}"
+          : "${POSTGRES_DB:?Missing GitHub secret POSTGRES_DB}"
+
+          # A populated SQLite DB is preserved on repeat deploys. An empty or invalid
+          # destination is migrated and validated before any API is restarted.
+          if docker compose run --rm --no-deps --entrypoint python sqlite-migrate -c '
+          import os, sqlite3, sys
+          p = "/data/tenders.db"
+          if not os.path.isfile(p) or os.path.getsize(p) == 0:
+              sys.exit(1)
+          try:
+              db = sqlite3.connect(p)
+              required = {"organisations", "categories", "users", "pending_registrations", "tenders", "tender_contacts", "briefing_sessions", "tender_documents", "scraping_logs", "business_documents", "business_profiles", "company_documents", "alert_preferences", "saved_tenders", "tender_applications", "tender_application_history", "tender_requirements", "alert_notifications", "profile_alert_notifications"}
+              tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type = ?", ("table",))}
+              if not required.issubset(tables):
+                  sys.exit(1)
+              rows = sum(db.execute("SELECT COUNT(*) FROM " + chr(34) + t + chr(34)).fetchone()[0] for t in required)
+              sys.exit(0 if rows > 0 else 1)
+          except sqlite3.DatabaseError:
+              sys.exit(1)
+          ' >/dev/null 2>&1; then
+            echo "Persistent SQLite database already has application records; preserving it and skipping one-time import."
+          else
+            export SOURCE_DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD_ENCODED}@tender-postgres:5432/${POSTGRES_DB}"
+            echo "Starting PostgreSQL-to-SQLite import into /data/tenders.db"
+            docker compose run --rm --no-deps -e SOURCE_DATABASE_URL --entrypoint /bin/sh sqlite-migrate -lc 'python -m pip install --no-cache-dir -r scripts/migration-requirements.txt && python scripts/migrate_postgres_to_sqlite.py --postgres-url "$SOURCE_DATABASE_URL" --sqlite-path /data/tenders.db --schema /src/db/schema.sql'
+            docker compose run --rm --no-deps --entrypoint python sqlite-migrate -c '
+          import sqlite3, sys
+          db = sqlite3.connect("/data/tenders.db")
+          integrity = db.execute("PRAGMA integrity_check").fetchone()[0]
+          foreign_keys = db.execute("PRAGMA foreign_key_check").fetchall()
+          if integrity != "ok" or foreign_keys:
+              print("SQLite validation failed:", integrity, "foreign-key violations:", len(foreign_keys), file=sys.stderr)
+              sys.exit(1)
+          print("SQLite integrity_check: ok")
+          print("SQLite foreign_key_check: 0 violations")
+          for table in ("organisations", "categories", "users", "tenders", "tender_contacts", "tender_documents"):
+              count = db.execute("SELECT COUNT(*) FROM " + chr(34) + table + chr(34)).fetchone()[0]
+              print("{}: {} rows".format(table, count))
+          '
+          fi
+
+      - name: Rebuild and restart services after successful migration
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+          ETENDERS_BASE_URL: ${{ secrets.ETENDERS_BASE_URL }}
+          AI_MODEL: ${{ secrets.AI_MODEL }}
+          AI_REQUEST_TIMEOUT_SECONDS: ${{ secrets.AI_REQUEST_TIMEOUT_SECONDS }}
+          AI_SERVICE_API_KEY: ${{ secrets.AI_SERVICE_API_KEY }}
+        run: |
+          set -euo pipefail
+          cd ~/actions-runner-database/_work/tender-scrapping-database/tender-scrapping-database/
+          docker compose up -d --build --remove-orphans
+          docker compose ps

@@ -1,0 +1,1163 @@
+/* My profile page (profile.html). Loaded after the shared app styles.
+   The company tab opens with a supplier card (credentials and how complete
+   the profile is for Smart Alerts), then a section index beside the form. */
+
+body:has(.profile-savebar) {
+    overflow-x: clip;
+    overflow-y: visible;
+}
+
+.main-content.settings-page {
+    overflow: visible;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+/* ---------- Page header: title on the left, signed-in account on the right ---------- */
+
+.settings-page .profile-page-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px 24px;
+    margin-bottom: 20px;
+}
+
+.settings-page .profile-page-header .page-subtitle {
+    max-width: 62ch;
+}
+
+.settings-page .profile-account-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 0;
+    margin: 0;
+    padding: 7px 18px 7px 7px;
+    border: 1px solid var(--shell-border, #e2eaf4);
+    border-radius: 999px;
+    background: var(--shell-surface, #fff);
+    box-shadow: none;
+}
+
+.settings-page .profile-account-avatar {
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    background: var(--brand-navy, #103b52);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.settings-page .profile-account-info {
+    gap: 1px;
+}
+
+.settings-page .profile-account-info span {
+    color: var(--shell-muted, #5a697f);
+    font-size: 12px;
+}
+
+.settings-page .profile-account-info strong {
+    color: var(--shell-ink, #14243b);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* ---------- Tabs: underlined, sitting on a rule across the page ---------- */
+
+.settings-page .settings-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 4px;
+    width: 100%;
+    margin: 0 0 22px;
+    padding: 0;
+    overflow-x: auto;
+    border: 0;
+    border-bottom: 1px solid var(--shell-border, #e2eaf4);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    scrollbar-width: none;
+}
+
+.settings-page .settings-tab {
+    position: relative;
+    flex: none;
+    min-height: 46px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--shell-muted, #5a697f);
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.settings-page .settings-tab::after {
+    content: "";
+    position: absolute;
+    right: 10px;
+    bottom: -1px;
+    left: 10px;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+    background: transparent;
+}
+
+.settings-page .settings-tab:hover {
+    color: var(--shell-ink, #14243b);
+}
+
+.settings-page .settings-tab.active {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--shell-ink, #14243b);
+    font-weight: 600;
+}
+
+.settings-page .settings-tab.active::after {
+    background: var(--shell-accent, #206e98);
+}
+
+.settings-page .settings-tab:focus-visible {
+    outline: 2px solid var(--shell-accent, #206e98);
+    outline-offset: -4px;
+    border-radius: 10px;
+}
+
+/* ---------- Company tab ---------- */
+
+.settings-page .settings-panel.profile-company {
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+/* Supplier card: the company as government buyers see it. */
+.profile-hero {
+    position: relative;
+    margin-bottom: 24px;
+    padding: 24px 28px 20px;
+    overflow: hidden;
+    border-radius: 18px;
+    background-color: var(--brand-navy, #103b52);
+    color: #fff;
+}
+
+/* Fine diagonal lines on the right, like the security print on a registration certificate. */
+.profile-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 0 45%;
+    background: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 10px);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 60%);
+    mask-image: linear-gradient(90deg, transparent, #000 60%);
+    pointer-events: none;
+}
+
+.profile-hero > * {
+    position: relative;
+}
+
+.profile-hero-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px 18px;
+}
+
+.profile-hero-avatar {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 58px;
+    height: 58px;
+    border-radius: 14px;
+    background: var(--brand-yellow, #ffc400);
+    color: var(--brand-navy, #103b52);
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+
+.profile-hero-text {
+    flex: 1;
+    min-width: 200px;
+}
+
+.settings-panel .profile-hero h2 {
+    margin: 0;
+    color: #fff;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.settings-panel .profile-hero .profile-hero-subline {
+    margin: 4px 0 0;
+    color: rgba(255, 255, 255, 0.74);
+    font-size: 14px;
+}
+
+.profile-credentials {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 22px 0 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.profile-credentials > div {
+    min-width: 0;
+    padding: 14px 16px 2px 0;
+}
+
+.profile-credentials > div + div {
+    padding-left: 18px;
+    border-left: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.settings-panel .profile-hero .profile-credentials dt {
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.settings-panel .profile-hero .profile-credentials dd {
+    margin: 4px 0 0;
+    overflow-wrap: anywhere;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+}
+
+.settings-panel .profile-hero .profile-credentials dd.is-missing {
+    color: rgba(255, 255, 255, 0.42);
+    font-weight: 500;
+    letter-spacing: normal;
+}
+
+.profile-readiness {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.profile-readiness-track {
+    flex: 0 0 168px;
+    height: 6px;
+    overflow: hidden;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.16);
+}
+
+#profileReadinessFill {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--brand-yellow, #ffc400);
+    transition: width 0.45s ease;
+}
+
+.settings-panel .profile-hero .profile-readiness p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.84);
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+/* The next detail to add: opens its section and puts the cursor in it. */
+.profile-hero .profile-readiness .profile-readiness-next {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--brand-yellow, #ffc400);
+    font: inherit;
+    font-weight: 600;
+    text-align: left;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.profile-hero .profile-readiness .profile-readiness-next:hover {
+    text-decoration-thickness: 2px;
+}
+
+.profile-hero .profile-readiness .profile-readiness-next:focus-visible {
+    outline: 2px solid var(--brand-yellow, #ffc400);
+    outline-offset: 3px;
+    border-radius: 3px;
+}
+
+.profile-hero .btn-secondary {
+    border-color: rgba(255, 255, 255, 0.28);
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.profile-hero .btn-secondary:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.profile-hero .btn-secondary:disabled {
+    opacity: 0.55;
+}
+
+.profile-hero #fillFromDocuments:not(:disabled) {
+    border-color: var(--brand-yellow, #ffc400);
+    background: var(--brand-yellow, #ffc400);
+    color: var(--brand-navy, #103b52);
+}
+
+.profile-head-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.profile-head-actions > * {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.profile-head-actions .lucide,
+.profile-delete-button .lucide {
+    flex: none;
+}
+
+/* Collapsible rows: the company form's sections and the user tab's groups.
+   A closed row shows one line of what is filled in, so the page reads at a glance. */
+.profile-company #profileForm,
+.account-rows {
+    min-width: 0;
+    border: 1px solid var(--shell-border, #e2eaf4);
+    border-radius: 18px;
+    background: var(--shell-surface, #fff);
+}
+
+.profile-section + .profile-section,
+.account-row + .account-row {
+    border-top: 1px solid var(--shell-border, #e2eaf4);
+}
+
+.profile-section,
+.account-row {
+    scroll-margin-top: calc(var(--shell-topbar-height, 68px) + 20px);
+}
+
+.profile-section > summary,
+.account-row > summary {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 24px;
+    list-style: none;
+    cursor: pointer;
+}
+
+.profile-section > summary::-webkit-details-marker,
+.account-row > summary::-webkit-details-marker {
+    display: none;
+}
+
+.profile-section:first-of-type > summary,
+.account-row:first-child > summary {
+    border-radius: 17px 17px 0 0;
+}
+
+.account-row:last-child:not([open]) > summary {
+    border-radius: 0 0 17px 17px;
+}
+
+.profile-section > summary:hover,
+.account-row > summary:hover {
+    background: color-mix(in srgb, var(--shell-accent, #206e98) 5%, transparent);
+}
+
+.profile-section > summary:focus-visible,
+.account-row > summary:focus-visible {
+    outline: 2px solid var(--shell-accent, #206e98);
+    outline-offset: -2px;
+}
+
+.profile-section-title {
+    display: grid;
+    flex: 1;
+    gap: 2px;
+    min-width: 0;
+}
+
+.settings-panel .profile-section-title :is(h2, h3) {
+    margin: 0;
+    color: var(--shell-ink, #14243b);
+    font-size: 16px;
+    font-weight: 650;
+}
+
+.profile-section-recap {
+    overflow: hidden;
+    color: var(--shell-muted, #5a697f);
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* An open company section shows the fields themselves. */
+.profile-section[open] .profile-section-recap {
+    display: none;
+}
+
+.profile-section-check {
+    flex: none;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.profile-section-check.is-complete {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.profile-chevron {
+    flex: none;
+    color: var(--shell-muted, #5a697f);
+    transition: transform 0.2s ease;
+}
+
+details[open] > summary .profile-chevron {
+    transform: rotate(180deg);
+}
+
+/* Fields line up with the section title, not the icon. */
+.profile-section-body {
+    padding: 2px 24px 26px 70px;
+}
+
+.profile-section-compact .settings-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.profile-icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--app-primary, #206e98) 12%, transparent);
+    color: var(--app-primary, #206e98);
+}
+
+.settings-field .profile-filled {
+    border-color: #16a34a;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
+}
+
+.profile-provinces {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.profile-provinces legend {
+    margin-bottom: 10px;
+    color: var(--app-ink, #152238);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* Provinces as toggle chips: the whole chip is the checkbox's label. */
+.profile-province-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.profile-province-options label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 0 14px 0 11px;
+    border: 1px solid var(--shell-border, #e2eaf4);
+    border-radius: 999px;
+    background: var(--shell-surface, #fff);
+    color: var(--shell-ink, #14243b);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.profile-province-options label:hover {
+    border-color: var(--shell-accent, #206e98);
+}
+
+.profile-province-options label:has(input:checked) {
+    border-color: var(--shell-accent, #206e98);
+    background: color-mix(in srgb, var(--shell-accent, #206e98) 10%, var(--shell-surface, #fff));
+}
+
+.profile-province-options label:has(input:focus-visible) {
+    outline: 2px solid var(--shell-accent, #206e98);
+    outline-offset: 2px;
+}
+
+.settings-field .profile-province-options input[type="checkbox"] {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border-radius: 4px;
+    box-shadow: none;
+    accent-color: var(--shell-accent, #206e98);
+    cursor: pointer;
+}
+
+.profile-tag-input {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    min-height: 37px;
+    padding: 4px 8px;
+    border: 1px solid #d8e2ef;
+    border-radius: 11px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.profile-tag-input:focus-within {
+    border-color: #7aa9f7;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.settings-field .profile-tag-input input {
+    flex: 1;
+    width: auto;
+    min-width: 160px;
+    min-height: 0;
+    padding: 5px 4px;
+    border: 0;
+    border-radius: 0;
+    outline: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.settings-field .profile-tag-input input:focus {
+    box-shadow: none;
+}
+
+.profile-tag-list {
+    display: contents;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.profile-tag-list li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px 4px 10px;
+    border-radius: 99px;
+    background: rgba(31, 95, 197, 0.1);
+    color: var(--app-primary, #1f5fc5);
+    font-size: 13px;
+}
+
+.profile-tag-list button {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.profile-tag-list button:hover {
+    background: rgba(31, 95, 197, 0.18);
+}
+
+.profile-tag-list button:focus-visible {
+    outline: 2px solid var(--app-primary, #1f5fc5);
+}
+
+.profile-delete-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 16px;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    background: #fef2f2;
+    color: #b91c1c;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.profile-delete-button:hover:not(:disabled) {
+    border-color: #dc2626;
+    background: #dc2626;
+    color: #fff;
+}
+
+.profile-delete-button:focus-visible {
+    outline: 2px solid #dc2626;
+    outline-offset: 2px;
+}
+
+.profile-delete-button .lucide {
+    width: 16px;
+    height: 16px;
+}
+
+.profile-delete-button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.profile-savebar {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    padding: 14px 24px;
+    border-top: 1px solid var(--shell-border, #e2eaf4);
+    border-radius: 0 0 17px 17px;
+    background: var(--shell-surface, #fff);
+    box-shadow: 0 -8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.profile-savebar .btn-primary {
+    min-height: 40px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--app-primary, #1f5fc5);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.profile-savebar .btn-primary:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+
+.profile-unsaved {
+    margin-left: auto;
+    color: var(--app-muted, #566985);
+    font-size: 13px;
+}
+
+.profile-unsaved[hidden] + .btn-primary {
+    margin-left: auto;
+}
+
+.profile-unsaved::before {
+    content: "";
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-right: 7px;
+    border-radius: 50%;
+    background: #d97706;
+    vertical-align: 1px;
+}
+
+.profile-unsaved.saved::before {
+    background: #16a34a;
+}
+
+/* ---------- User profile tab ---------- */
+
+.settings-page .settings-panel.account-panel {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.account-row .settings-grid {
+    max-width: 760px;
+}
+
+#accountRowPassword .settings-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.account-panel .settings-actions {
+    margin: 20px 0 0;
+    padding: 0;
+    border: 0;
+}
+
+/* Deactivate and Delete side by side, so the two choices can be compared. */
+.account-exit-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.account-exit-options > section {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 22px 24px 24px;
+    border: 1px solid var(--shell-border, #e2eaf4);
+    border-top: 4px solid #d97706;
+    border-radius: 16px;
+    background: var(--shell-surface, #fff);
+}
+
+.account-exit-options > .delete-account {
+    border-top-color: #dc2626;
+}
+
+.settings-panel .account-exit-options h3 {
+    margin: 0;
+    color: var(--shell-ink, #14243b);
+    font-size: 16px;
+    font-weight: 650;
+}
+
+.settings-panel .account-exit-options .delete-account h3 {
+    color: #b91c1c;
+}
+
+.account-exit-facts {
+    display: grid;
+    gap: 6px;
+    margin: 12px 0 18px;
+    padding-left: 18px;
+    color: var(--shell-muted, #5a697f);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.account-exit-options form {
+    margin-top: auto;
+}
+
+.account-exit-options .settings-grid {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.delete-account-confirm {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 14px 0 4px;
+    font-size: 13px;
+    line-height: 1.5;
+    cursor: pointer;
+}
+
+.delete-account-confirm input {
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    flex-shrink: 0;
+    accent-color: #dc2626;
+}
+
+.delete-account-button {
+    min-height: 40px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 10px;
+    background: #b91c1c;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.delete-account-button:hover {
+    background: #991b1b;
+}
+
+.delete-account-button:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+.deactivate-account-button {
+    min-height: 40px;
+    padding: 0 18px;
+    border: 1px solid #b45309;
+    border-radius: 10px;
+    background: transparent;
+    color: #b45309;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.deactivate-account-button:hover {
+    background: #fffbeb;
+}
+
+.deactivate-account-button:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+:is(.delete-account-button, .deactivate-account-button):focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+/* ---------- Delete company profile dialog ---------- */
+
+.profile-delete-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.55);
+}
+
+.profile-delete-overlay[hidden] {
+    display: none;
+}
+
+.profile-delete-dialog {
+    width: min(100%, 440px);
+    padding: 26px;
+    border: 1px solid var(--app-line, #dce5f1);
+    border-radius: 18px;
+    background: var(--app-surface, #fff);
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.25);
+    color: var(--app-ink, #152238);
+}
+
+.profile-delete-icon {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #fee2e2;
+    color: #b91c1c;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.profile-delete-dialog h2 {
+    margin: 16px 0 8px;
+    font-size: 20px;
+}
+
+.profile-delete-dialog p {
+    margin: 0;
+    color: var(--app-muted, #566985);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.profile-delete-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.profile-delete-actions .profile-confirm-delete {
+    min-height: 38px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 10px;
+    background: #dc2626;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* ---------- Dark mode ---------- */
+
+html[data-theme="dark"] .settings-page .profile-account-card,
+html[data-theme="dark"] .settings-page .settings-tabs {
+    background: transparent;
+}
+
+html[data-theme="dark"] .settings-page .profile-account-card {
+    border-color: var(--shell-border);
+}
+
+html[data-theme="dark"] .settings-page .settings-tab.active {
+    background: transparent;
+    color: var(--shell-ink);
+}
+
+html[data-theme="dark"] .settings-page .settings-panel.profile-company,
+html[data-theme="dark"] .settings-page .settings-panel.account-panel {
+    border: 0;
+    background: transparent;
+}
+
+html[data-theme="dark"] .profile-hero {
+    background-color: #0c3044;
+    box-shadow: inset 0 0 0 1px var(--app-line, #2b5367);
+}
+
+/* app-theme.css paints every section and every "*panel*" class the same dark
+   grey, with !important. The ID selectors below win over that on this page. */
+html[data-theme="dark"] body #companyPanel,
+html[data-theme="dark"] body #userPanel {
+    border-color: transparent !important;
+    background-color: transparent !important;
+}
+
+html[data-theme="dark"] .profile-section-check {
+    background: rgba(245, 158, 11, 0.16);
+    color: #fbbf24;
+}
+
+html[data-theme="dark"] .profile-section-check.is-complete {
+    background: rgba(34, 197, 94, 0.16);
+    color: #86efac;
+}
+
+html[data-theme="dark"] .profile-company #profileForm,
+html[data-theme="dark"] .account-rows,
+html[data-theme="dark"] .profile-company .profile-savebar {
+    border-color: #354154;
+    background: #1b2433;
+}
+
+html[data-theme="dark"] body #userPanel .deactivate-account {
+    border-top-color: #f59e0b !important;
+}
+
+html[data-theme="dark"] body #userPanel .delete-account {
+    border-top-color: #ef4444 !important;
+}
+
+html[data-theme="dark"] .profile-province-options label {
+    border-color: var(--shell-border);
+    background: transparent;
+}
+
+html[data-theme="dark"] .profile-province-options label:has(input:checked) {
+    border-color: var(--shell-accent);
+    background: color-mix(in srgb, var(--shell-accent) 16%, transparent);
+}
+
+html[data-theme="dark"] .profile-tag-input {
+    border-color: #354b66;
+    background: #0d1b2d;
+}
+
+html[data-theme="dark"] .settings-field .profile-tag-input input {
+    background: transparent !important;
+}
+
+html[data-theme="dark"] .profile-tag-list li {
+    background: rgba(96, 165, 250, 0.16);
+    color: #93c5fd;
+}
+
+html[data-theme="dark"] .profile-delete-button {
+    border-color: rgba(248, 113, 113, 0.4);
+    background: rgba(239, 68, 68, 0.12);
+    color: #fca5a5;
+}
+
+html[data-theme="dark"] .profile-delete-button:hover:not(:disabled) {
+    border-color: #ef4444;
+    background: #ef4444;
+    color: #fff;
+}
+
+html[data-theme="dark"] .account-exit-options > .deactivate-account {
+    border-top-color: #f59e0b;
+}
+
+html[data-theme="dark"] .account-exit-options > .delete-account {
+    border-top-color: #ef4444;
+}
+
+html[data-theme="dark"] .settings-panel .account-exit-options .delete-account h3 {
+    color: #f87171;
+}
+
+html[data-theme="dark"] .deactivate-account-button {
+    border-color: #f59e0b;
+    color: #fbbf24;
+}
+
+html[data-theme="dark"] .deactivate-account-button:hover {
+    background: rgba(245, 158, 11, .12);
+}
+
+/* ---------- Smaller screens ---------- */
+
+@media (max-width: 900px) {
+    .account-exit-options,
+    .profile-section-compact .settings-grid,
+    #accountRowPassword .settings-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .profile-credentials {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .profile-credentials > div:nth-child(3) {
+        padding-left: 0;
+        border-left: 0;
+    }
+}
+
+@media (max-width: 700px) {
+    .settings-page .profile-account-card {
+        width: 100%;
+        border-radius: 14px;
+    }
+
+    .profile-hero {
+        padding: 18px;
+    }
+
+    .profile-readiness {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .profile-readiness-track {
+        flex-basis: auto;
+    }
+
+    .profile-section > summary,
+    .account-row > summary {
+        gap: 12px;
+        padding: 16px;
+    }
+
+    .profile-section-body {
+        padding: 2px 16px 22px;
+    }
+
+    .profile-section > summary .profile-icon,
+    .account-row > summary .profile-icon {
+        display: none;
+    }
+
+    .profile-savebar {
+        padding: 12px 16px;
+    }
+
+    .profile-savebar .btn-primary {
+        margin-left: auto;
+    }
+
+    .profile-unsaved {
+        order: -1;
+        flex-basis: 100%;
+        margin-left: 0;
+    }
+
+    .profile-head-actions,
+    .profile-head-actions > * {
+        flex: 1 1 100%;
+        justify-content: center;
+    }
+
+    .account-exit-options > section {
+        padding: 18px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #profileReadinessFill,
+    .profile-province-options label,
+    .profile-chevron {
+        transition: none;
+    }
+}
+
+body:has(.profile-savebar) .cookie-settings-launcher {
+    bottom: 86px;
+}
+
+@media (max-width: 820px) {
+    body:has(.profile-savebar) .cookie-settings-launcher {
+        bottom: 80px;
+    }
+}
+
+/* ---------- Read-only company details (built from the user's business documents) ---------- */
+
+.settings-page .profile-source-line {
+    margin: 14px 0 0;
+    font-size: 13px;
+    color: var(--app-muted);
+}
+
+.settings-page .profile-source-line a {
+    color: inherit;
+    font-weight: 700;
+}
+
+.settings-page .profile-tag-list .profile-tag-hint {
+    border: 0;
+    background: transparent;
+    color: var(--app-muted);
+    font-style: italic;
+    padding-left: 0;
+}

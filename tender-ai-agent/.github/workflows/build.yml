@@ -1,0 +1,147 @@
+name: Build and Deploy Tender AI Agent
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: tender-ai-agent-deploy
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Lowercase owner for image tag
+        id: lc
+        run: |
+          echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - name: Clear stale GHCR credentials
+        run: docker logout ghcr.io || true
+
+      - name: Log in to GHCR
+        run: |
+          echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io \
+            -u "YGlelani" \
+            --password-stdin
+
+      - name: Verify GHCR access
+        run: |
+          docker pull ghcr.io/${{ steps.lc.outputs.owner }}/tender-ai-agent:latest || true
+          echo "GHCR access check complete"
+
+      - name: Check dependencies for known vulnerabilities
+        run: |
+          docker run --rm -i --pull always python:3.12-slim             sh -c 'cat > /tmp/requirements.txt && python3 -m venv /tmp/audit && /tmp/audit/bin/pip install -q pip-audit==2.10.1 && /tmp/audit/bin/pip-audit -r /tmp/requirements.txt'             < requirements.txt
+
+      - name: Build image (native arm64)
+        run: |
+          IMAGE=ghcr.io/${{ steps.lc.outputs.owner }}/tender-ai-agent
+          docker build \
+            --pull \
+            -t $IMAGE:latest \
+            -t $IMAGE:${{ github.sha }} \
+            .
+
+      - name: Push image
+        # The deploy below starts the image just built on this server, so a refused upload
+        # (for example a GHCR_TOKEN without write:packages) is a warning, not a stopped deploy.
+        run: |
+          IMAGE=ghcr.io/${{ steps.lc.outputs.owner }}/tender-ai-agent
+          if docker push $IMAGE:latest && docker push $IMAGE:${{ github.sha }}; then
+            echo "Image saved to GHCR"
+          else
+            echo "::warning::GHCR refused the image upload, so the registry still has the previous image. Give the GHCR_TOKEN secret write:packages. This run deploys the image built on the server."
+          fi
+
+      - name: Deploy on will
+        env:
+          AZURE_AI_API_KEY: ${{secrets.API_KEY}}
+          AZURE_AI_ENDPOINT: ${{secrets.endpoint}}
+          AZURE_AI_DEPLOYMENT: ${{secrets.deployment_name }}
+          CLIENT_API_URL: ${{ secrets.CLIENT_API_URL }}
+          # The AI service no longer publishes port 8002 on the host, so only the
+          # address on tender-scrapping-net works. Pinned here so an old secret
+          # holding the public IP cannot break the agent.
+          AI_SERVICE_URL: http://ai:8002
+          AI_SERVICE_API_KEY: ${{ secrets.AI_SERVICE_API_KEY }}
+          ACCOUNT_DELETION_KEY: ${{ secrets.ACCOUNT_DELETION_KEY }}
+          AGENT_ADMIN_KEY: ${{ secrets.AGENT_ADMIN_KEY }}
+          REDIS_URL: ${{ secrets.REDIS_URL }}
+        run: |
+          # Deploy from this run's checkout so the compose.yaml being used is the
+          # version just built, not a stale copy.
+          cd "$GITHUB_WORKSPACE"
+          docker compose up -d --force-recreate agent-api
+          docker compose ps
+
+      - name: Verify deployment
+        run: |
+          for i in $(seq 1 24); do
+            curl -fsS http://localhost:9000/ >/dev/null && break
+            sleep 5
+          done
+          if ! curl -fsS http://localhost:9000/; then
+            echo "Agent did not come up:"
+            docker logs --tail 80 tender-agent-api
+            exit 1
+          fi
+          echo ""
+          # Sign-in is verified by the Login API (container jwt-api). The agent must
+          # reach it, and must reject a token signed with the old public default key.
+          docker exec -i tender-agent-api python - <<'PY'
+          import os, sys, time, urllib.error, urllib.request
+          import jwt
+          login = os.getenv("LOGIN_API_URL", "http://jwt-api:8006")
+          try:
+              urllib.request.urlopen(login + "/health", timeout=10)
+          except Exception as e:
+              sys.exit(f"Agent cannot reach the Login API at {login}: {e}")
+          forged = jwt.encode({"sub": "deploy-check@invalid", "exp": int(time.time()) + 60},
+                              "your_super_secret_development_key", algorithm="HS256")
+          req = urllib.request.Request("http://localhost:9000/agent/overview",
+                                       headers={"Authorization": "Bearer " + forged})
+          try:
+              urllib.request.urlopen(req, timeout=10)
+              sys.exit("SECURITY: the agent accepted a token signed with the public default key")
+          except urllib.error.HTTPError as e:
+              if e.code != 401:
+                  sys.exit(f"Unexpected status {e.code} for a forged token")
+          print(f"OK: Login API reachable at {login}; forged default-key tokens are rejected")
+          PY
+          # LangSmith tracing must stay off (see compose.yaml).
+          docker exec -i tender-agent-api python - <<'PY'
+          import os, sys
+          if os.getenv("LANGSMITH_TRACING", "").lower() != "false" or os.getenv("LANGSMITH_API_KEY"):
+              sys.exit("LangSmith tracing is not switched off in the agent container")
+          print("OK: LangSmith tracing is off")
+          PY
+          # Account deletion must refuse calls that lack the shared key.
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://localhost:9000/internal/accounts/delete \
+            -H 'Content-Type: application/json' -d '{"email":"deploy-check@invalid"}')
+          if [ "$code" = "503" ]; then
+            echo "::warning::ACCOUNT_DELETION_KEY is not set, so account deletion is switched off."
+          elif [ "$code" != "401" ]; then
+            echo "Account deletion answered $code to a call without the key (expected 401)"
+            exit 1
+          else
+            echo "OK: account deletion rejects calls without the key"
+          fi
+
+      - name: Summary
+        run: |
+          echo "### Tender AI Agent deployed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Image: \`ghcr.io/${{ steps.lc.outputs.owner }}/tender-ai-agent:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "SHA: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Deployed on: \`will\`" >> $GITHUB_STEP_SUMMARY

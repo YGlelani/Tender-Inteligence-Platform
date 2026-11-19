@@ -1,0 +1,164 @@
+name: tender-scrapping
+
+# Every container keeps at most 3 x 10 MB of logs; older entries are overwritten.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  # Run the one-time PostgreSQL -> SQLite import before starting APIs.
+  # This service writes only to the dedicated SQLite volume; it never modifies PostgreSQL.
+  sqlite-migrate:
+    logging: *default-logging
+    image: python:3.11-slim
+    working_dir: /src
+    entrypoint: ["/bin/sh", "-lc"]
+    command: >-
+      python -m pip install --no-cache-dir -r scripts/migration-requirements.txt &&
+      python scripts/migrate_postgres_to_sqlite.py --postgres-url "$$SOURCE_DATABASE_URL" --sqlite-path /data/tenders.db
+    environment:
+      SOURCE_DATABASE_URL: ${SOURCE_DATABASE_URL}
+    volumes:
+      - ./:/src:ro
+      - tender-sqlite-data:/data
+    networks:
+      - tender-net
+
+  # Scraper and client APIs share the canonical tender database.
+  scraper-api:
+    logging: *default-logging
+    build:
+      context: .
+      dockerfile: scraper-api/Dockerfile
+    container_name: tender-scraper-api
+    restart: unless-stopped
+    environment:
+      DATABASE_PATH: /data/tenders.db
+      API_KEY: ${API_KEY}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://129.151.181.87:8009}
+      ETENDERS_BASE_URL: ${ETENDERS_BASE_URL}
+      ETENDERS_MAX_PAGES_DEFAULT: "10"
+    ports:
+      - "8000:8000"
+    volumes:
+      - tender-sqlite-data:/data
+    networks:
+      - tender-net
+
+  client-api:
+    logging: *default-logging
+    build:
+      context: .
+      dockerfile: client-api/Dockerfile
+    container_name: tender-client-api
+    restart: unless-stopped
+    environment:
+      DATABASE_PATH: /data/tenders.db
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://129.151.181.87:8009}
+    ports:
+      - "8001:8001"
+    volumes:
+      - tender-sqlite-data:/data
+    networks:
+      - tender-net
+
+  # AI service keeps its incompatible AI-specific schema in a separate database.
+  ai:
+    logging: *default-logging
+    build:
+      context: ./ai
+    container_name: tender-ai
+    restart: unless-stopped
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+      AI_MODEL: ${AI_MODEL:-llama3.1:8b}
+      AI_REQUEST_TIMEOUT_SECONDS: ${AI_REQUEST_TIMEOUT_SECONDS:-600}
+      DATABASE_PATH: /data/ai.db
+      # Shared with the AI agent, which sends it as X-Internal-Key.
+      AI_SERVICE_API_KEY: ${AI_SERVICE_API_KEY:-}
+      # The ML category model. When it is unreachable, matching uses the keyword category rule.
+      TENDER_ML_URL: ${TENDER_ML_URL:-http://tender-ml:9004}
+    # No published port: the AI agent reaches this service as http://ai:8002 on
+    # tender-scrapping-net, and no browser page calls it. Publishing 8002 exposed
+    # every business profile to the internet.
+    volumes:
+      - ai-data:/data
+    depends_on:
+      ollama:
+        condition: service_healthy
+    networks:
+      - tender-net
+
+  ollama:
+    logging: *default-logging
+    image: ollama/ollama:latest
+    container_name: tender-ollama
+    restart: unless-stopped
+    environment:
+      OLLAMA_KEEP_ALIVE: "-1"
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks:
+      - tender-net
+
+  redis:
+    logging: *default-logging
+    image: redis:8
+    container_name: tender-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - tender-net
+
+  lelani-cache-api:
+    logging: *default-logging
+    image: ghcr.io/yglelani/lelani-cache-api:latest
+    container_name: lelani-cache-api
+    restart: unless-stopped
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      CLIENT_API_URL: http://client-api:8001
+      CACHE_TTL_LIST: "120"
+      CACHE_TTL_SEARCH: "60"
+      CACHE_TTL_DETAIL: "600"
+      CACHE_KEY_PREFIX: lelani
+      UPSTREAM_TIMEOUT: "30"
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://129.151.181.87:8009}
+    ports:
+      - "8003:8003"
+    depends_on:
+      redis:
+        condition: service_healthy
+      client-api:
+        condition: service_started
+    networks:
+      - tender-net
+
+volumes:
+  tender-sqlite-data:
+  ollama-data:
+  ai-data:
+  redis-data:
+
+networks:
+  tender-net:
+    external: true
+    name: tender-scrapping-net

@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  jwt-api:
+    build: .
+    container_name: jwt-api
+    ports:
+      - "8006:8006"
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - tender-net
+
+networks:
+  tender-net:
+    external: true
+    name: tender-scrapping-net

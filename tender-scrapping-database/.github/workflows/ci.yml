@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - feature/postgres-to-sqlite
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Check dependencies for known vulnerabilities
+
+        run: |
+
+          python -m pip install pip-audit==2.10.1
+
+          pip-audit -r scraper-api/requirements.txt
+          pip-audit -r client-api/requirements.txt
+          pip-audit -r ai/requirements.txt
+
+
+      - name: Check Python syntax
+        run: |
+          python -m compileall -q scraper-api/app client-api/app ai scripts tests
+
+      - name: Check Scraper API imports
+        env:
+          DATABASE_PATH: /tmp/tender-scraper-ci.db
+          API_KEY: test-api-key
+        run: |
+          python -m venv "$RUNNER_TEMP/scraper-venv"
+          "$RUNNER_TEMP/scraper-venv/bin/python" -m pip install --upgrade pip
+          "$RUNNER_TEMP/scraper-venv/bin/python" -m pip install -r scraper-api/requirements.txt
+          cd scraper-api
+          "$RUNNER_TEMP/scraper-venv/bin/python" -c "import app.main"
+          "$RUNNER_TEMP/scraper-venv/bin/python" -m unittest discover -s tests -v
+
+      - name: Check Client API imports
+        env:
+          DATABASE_PATH: /tmp/tender-client-ci.db
+          CORS_ORIGINS: "*"
+        run: |
+          python -m venv "$RUNNER_TEMP/client-venv"
+          "$RUNNER_TEMP/client-venv/bin/python" -m pip install --upgrade pip
+          "$RUNNER_TEMP/client-venv/bin/python" -m pip install -r client-api/requirements.txt
+          cd client-api
+          "$RUNNER_TEMP/client-venv/bin/python" -c "import app.main"
+          "$RUNNER_TEMP/client-venv/bin/python" -m unittest discover -s tests -v
+
+      - name: Check AI service imports
+        env:
+          OLLAMA_BASE_URL: http://localhost:11434
+          AI_MODEL: llama3.2:3b
+          AI_REQUEST_TIMEOUT_SECONDS: "120"
+          DATABASE_PATH: /tmp/tender-ai-ci.db
+        run: |
+          python -m venv "$RUNNER_TEMP/ai-venv"
+          "$RUNNER_TEMP/ai-venv/bin/python" -m pip install --upgrade pip
+          "$RUNNER_TEMP/ai-venv/bin/python" -m pip install -r ai/requirements.txt
+          cd ai
+          "$RUNNER_TEMP/ai-venv/bin/python" -c "import main"
+          "$RUNNER_TEMP/ai-venv/bin/python" -m unittest discover -s tests -v
+      - name: Test PostgreSQL to SQLite migration safeguards
+        run: |
+          python -m venv "$RUNNER_TEMP/migration-venv"
+          "$RUNNER_TEMP/migration-venv/bin/python" -m pip install --upgrade pip
+          "$RUNNER_TEMP/migration-venv/bin/python" -m pip install -r scripts/migration-requirements.txt
+          "$RUNNER_TEMP/migration-venv/bin/python" -m unittest discover -s tests -v

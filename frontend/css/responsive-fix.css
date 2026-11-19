@@ -1,0 +1,603 @@
+/* =====================================================================
+   RESPONSIVE LAYER (final)
+   Save as css/responsive-fix.css and load it LAST on every page:
+   <link rel="stylesheet" href="./css/responsive-fix.css">
+ 
+     > 1024px   : fixed sidebar + topbar (desktop)
+     <= 1024px  : sidebar becomes a slide-in drawer (tablet + phone)
+     <= 760px   : single-column content, compact spacing
+     <= 480px   : small phones
+   ===================================================================== */
+ 
+:root {
+    --sidebar-w: 260px;
+    --app-topbar-height: 68px;
+}
+ 
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    overflow-x: hidden;
+}
+ 
+body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+}
+ 
+img,
+svg,
+video,
+canvas,
+iframe {
+    max-width: 100%;
+}
+ 
+/* ---------- Desktop (> 1024px) ---------- */
+ 
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--sidebar-w);
+    height: 100vh;
+    height: 100dvh;
+}
+ 
+.app-topbar {
+    left: var(--sidebar-w);
+}
+ 
+.main-content {
+    min-width: 0;
+    margin-left: var(--sidebar-w);
+    width: calc(100% - var(--sidebar-w));
+    padding: calc(var(--app-topbar-height) + 28px) 28px 110px;
+}
+ 
+/* Floating button is only a fallback (see tablet/phone section) */
+.mobile-menu-button {
+    display: none !important;
+}
+ 
+@media (min-width: 1700px) {
+    .main-content,
+    .main-content.settings-page {
+        padding-left: 48px;
+        padding-right: 48px;
+    }
+ 
+    .dashboard-grid,
+    .feed-list {
+        max-width: 1800px;
+    }
+}
+ 
+/* ---------- Dashboard grid steps ---------- */
+ 
+@media (max-width: 1200px) {
+    .kpi-card {
+        grid-column: span 6;
+    }
+ 
+    .chart-main,
+    .province-card,
+    .category-card,
+    .scrape-card,
+    .service-card-full,
+    .recent-card {
+        grid-column: span 12;
+    }
+ 
+    .service-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+ 
+/* ---------- Tablet + phone: sidebar becomes a drawer (<= 1024px) ---------- */
+ 
+@media (max-width: 1024px) {
+    .sidebar {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        width: min(300px, 86vw) !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        min-height: 0 !important;
+        padding: 64px 13px 16px;
+        z-index: 1200;
+        transform: translateX(-105%);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        box-shadow: none;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+    }
+ 
+    body.sidebar-open .sidebar {
+        transform: translateX(0);
+        box-shadow: 18px 0 50px rgba(2, 6, 23, 0.3);
+    }
+ 
+    .sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 1150;
+        display: block !important;
+        background: rgba(2, 6, 23, 0.5);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 0.25s ease, visibility 0.25s ease;
+    }
+ 
+    body.sidebar-open .sidebar-backdrop {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
+ 
+    body.sidebar-open {
+        overflow: hidden;
+    }
+ 
+    .mobile-sidebar-close {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        width: 38px;
+        height: 38px;
+        margin: 0;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 10px;
+        background: rgba(148, 163, 184, 0.1);
+        color: #e2e8f0;
+        font-size: 22px;
+        line-height: 1;
+    }
+ 
+    .app-topbar {
+        left: 0 !important;
+        right: 0 !important;
+        gap: 12px;
+        padding: 0 16px 0 62px;
+    }
+ 
+    .topbar-menu-toggle {
+        display: inline-flex !important;
+        width: 40px;
+        height: 40px;
+    }
+ 
+    .main-content {
+        width: 100% !important;
+        margin-left: 0 !important;
+        padding: calc(var(--app-topbar-height) + 22px) 22px 110px !important;
+        overflow-y: visible;
+    }
+ 
+    /* If a page has no topbar hamburger, show the floating one instead */
+    body:not(:has(.topbar-menu-toggle)) .mobile-menu-button {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 1090;
+        width: 42px;
+        height: 42px;
+        display: grid !important;
+        place-items: center;
+        font-size: 0;
+    }
+
+    body:not(:has(.topbar-menu-toggle)) .mobile-menu-button::before {
+        content: none;
+        color: currentColor;
+        font-size: 23px;
+        line-height: 1;
+    }
+ 
+    body.sidebar-open .mobile-menu-button {
+        opacity: 0;
+        pointer-events: none;
+    }
+}
+ 
+/* ---------- Top bar: always fits the screen (all sizes) ---------- */
+ 
+.app-topbar {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    max-width: 100vw;
+}
+ 
+/* Everything keeps its size except the search box */
+.app-topbar > *,
+.app-topbar .topbar-actions > * {
+    flex-shrink: 0;
+}
+ 
+.app-topbar .topbar-search {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: 560px;
+}
+ 
+.app-topbar .topbar-search input {
+    min-width: 0;
+    width: 100%;
+    text-overflow: ellipsis;
+}
+ 
+.app-topbar .topbar-actions {
+    flex: 0 0 auto;
+    min-width: 0;
+}
+ 
+.topbar-avatar {
+    display: grid;
+    place-items: center;
+    box-sizing: border-box;
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    flex: 0 0 34px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+ 
+.topbar-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+ 
+/* ---------- Phone (<= 760px) ---------- */
+ 
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1024px) {
+    :root {
+        --app-topbar-height: 62px;
+    }
+ 
+    .app-topbar {
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        padding: 0 10px 0 62px !important;
+        gap: 8px !important;
+    }
+
+    /* Keep the phone navigation behind the top-bar menu button, as in the app design. */
+    .sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        right: auto !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        display: block !important;
+        flex-direction: column;
+        align-items: stretch;
+        width: min(300px, 86vw) !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        min-height: 0 !important;
+        max-height: none;
+        padding: 64px 13px 16px !important;
+        border-top: 0;
+        border-right: 1px solid var(--shell-border, #dbe5ef);
+        box-shadow: none;
+        transform: translateX(-105%) !important;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    body.sidebar-open .sidebar {
+        transform: translateX(0) !important;
+        box-shadow: 18px 0 50px rgba(2, 6, 23, .3);
+    }
+
+    .sidebar .logo-area {
+        display: flex !important;
+    }
+
+    .sidebar-nav {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        width: 100% !important;
+        min-width: 0;
+        gap: 5px !important;
+    }
+
+    .sidebar-nav::before {
+        display: block !important;
+    }
+
+    .sidebar-nav > .nav-item {
+        flex: 0 0 auto;
+        flex-direction: row;
+        justify-content: flex-start;
+        min-width: 0;
+        min-height: 44px;
+        margin: 2px 10px !important;
+        padding: 0 13px !important;
+        text-align: left;
+        font-size: 12px;
+    }
+
+    .sidebar .mobile-sidebar-close {
+        display: inline-flex !important;
+    }
+
+    body:not(:has(.topbar-menu-toggle)) .mobile-menu-button {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 1300;
+        width: 42px;
+        height: 42px;
+        display: grid !important;
+        place-items: center;
+        font-size: 0;
+    }
+
+    body:not(:has(.topbar-menu-toggle)) .mobile-menu-button::before {
+        content: none;
+        color: currentColor;
+        font-size: 23px;
+        line-height: 1;
+    }
+
+    .sidebar-backdrop {
+        display: block !important;
+    }
+ 
+    .app-topbar .topbar-search {
+        flex: 1 1 0 !important;
+        min-width: 0 !important;
+        height: 38px;
+        padding: 0 9px;
+        gap: 6px;
+        max-width: none;
+    }
+ 
+    .app-topbar .topbar-actions {
+        margin-left: 0;
+        gap: 4px !important;
+    }
+ 
+    .topbar-user {
+        gap: 0;
+    }
+ 
+    .topbar-username {
+        display: none !important;
+    }
+ 
+    .main-content {
+        padding: calc(var(--app-topbar-height) + 16px) 16px 110px !important;
+    }
+ 
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+    }
+ 
+    .page-title {
+        font-size: 26px;
+    }
+ 
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+ 
+    .dashboard-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+ 
+    .kpi-card,
+    .chart-main,
+    .province-card,
+    .category-card,
+    .scrape-card,
+    .service-card-full,
+    .recent-card {
+        grid-column: auto;
+        min-height: auto;
+    }
+ 
+    .service-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+ 
+    .feed-list {
+        grid-template-columns: minmax(0, 1fr);
+    }
+ 
+    .feed-tender-details {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+ 
+    .detail-grid,
+    .alerts-layout,
+    .profile-alert-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+ 
+    .main-content table {
+        display: block;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+ 
+    /* 16px inputs stop iOS Safari from zooming in on focus */
+    input,
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+ 
+    .cookie-consent-banner {
+        left: 10px;
+        right: 10px;
+        bottom: 80px;
+    }
+ 
+    .cookie-consent-content {
+        max-height: calc(100dvh - 140px);
+        overflow-y: auto;
+    }
+}
+ 
+/* ---------- Small phones (<= 480px) ---------- */
+ 
+@media (max-width: 480px) {
+    .main-content {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+    }
+ 
+    .card,
+    .detail-card,
+    .profile-card,
+    .settings-panel {
+        padding: 16px;
+    }
+ 
+    .page-title {
+        font-size: 23px;
+    }
+ 
+    .card-value {
+        font-size: 28px;
+    }
+ 
+    .feed-tender-details {
+        grid-template-columns: minmax(0, 1fr);
+    }
+ 
+    .feed-tender-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+ 
+    .feed-tender-footer .tender-card-actions > * {
+        flex: 1 1 0;
+    }
+ 
+    .floating-ai-label {
+        display: none;
+    }
+ 
+    .floating-ai-assistant {
+        padding: 6px;
+        min-height: 0;
+    }
+}
+ 
+@media (max-width: 380px) {
+    .app-topbar {
+        padding: 0 8px 0 56px !important;
+        gap: 6px !important;
+    }
+ 
+    .topbar-avatar {
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
+        flex-basis: 30px;
+    }
+ 
+    .app-topbar .topbar-search {
+        padding: 0 8px;
+    }
+}
+
+/* Keep the full navigation visible on laptop-sized viewports, including
+   browser windows narrower than the tablet breakpoint. */
+@media (min-width: 761px) and (max-width: 1024px) and (pointer: fine) {
+    .sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        right: auto !important;
+        bottom: auto !important;
+        left: 0 !important;
+        width: var(--sidebar-w) !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        max-height: none !important;
+        padding: 23px 13px 16px !important;
+        transform: none !important;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    .sidebar .mobile-sidebar-close {
+        display: none !important;
+    }
+
+    .sidebar-backdrop,
+    .mobile-menu-button {
+        display: none !important;
+    }
+
+    /* As specific as app-theme.css's tablet rule (left: 0), which would otherwise put the
+       start of the top bar, with the search box, behind the sidebar. */
+    .app-topbar,
+    html body:has(.app-topbar) .app-topbar {
+        left: var(--sidebar-w) !important;
+        right: 0 !important;
+        width: auto !important;
+        padding: 0 16px !important;
+    }
+
+    .main-content,
+    html body:has(.app-topbar) main.main-content.settings-page {
+        width: calc(100% - var(--sidebar-w)) !important;
+        margin-left: var(--sidebar-w) !important;
+        padding: calc(var(--app-topbar-height) + 22px) 22px 110px !important;
+    }
+}
+ 
+/* ---------- Short screens (phones in landscape) ---------- */
+ 
+@media (max-height: 520px) {
+    .cookie-consent-banner {
+        bottom: 8px;
+    }
+ 
+    .cookie-consent-content {
+        max-height: calc(100dvh - 20px);
+        overflow-y: auto;
+    }
+ 
+    .cookie-settings-modal {
+        max-height: 98dvh;
+    }
+}
+ 
+/* ---------- Touch devices: comfortable tap targets ---------- */
+ 
+@media (pointer: coarse) {
+    .btn-primary,
+    .btn-secondary,
+    .page-btn,
+    .nav-item,
+    .logout-button,
+    .tender-open-btn,
+    .range-btn {
+        min-height: 44px;
+    }
+}
+ 
+

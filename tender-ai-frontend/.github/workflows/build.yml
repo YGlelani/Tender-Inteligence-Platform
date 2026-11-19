@@ -1,0 +1,70 @@
+name: Build and Deploy Tender AI Frontend
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: tender-ai-frontend-deploy
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Lowercase owner for image tag
+        id: lc
+        run: |
+          echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - name: Inject Secrets into Frontend
+        env:
+          AGENT_URL_SECRET: ${{ secrets.AGENT_URL }}
+          LOGIN_URL_SECRET: ${{ secrets.LOGIN_URL }}
+        run: |
+          # Replace the placeholders in app.js with the actual URLs from GitHub Secrets
+          sed -i "s|__AGENT_URL__|${AGENT_URL_SECRET}|g" scripts/app.js
+          sed -i "s|__LOGIN_URL__|${LOGIN_URL_SECRET}|g" scripts/app.js
+          
+          # Print a snippet to verify it worked (optional, for debugging)
+          echo "Checking injection..."
+          head -5 scripts/app.js
+
+      - name: Log in to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io \
+            -u "${{ github.actor }}" \
+            --password-stdin
+
+      - name: Build image
+        run: |
+          IMAGE=ghcr.io/${{ steps.lc.outputs.owner }}/tender-ai-frontend
+          docker build -t $IMAGE:latest -t $IMAGE:${{ github.sha }} .
+
+      - name: Push image
+        run: |
+          IMAGE=ghcr.io/${{ steps.lc.outputs.owner }}/tender-ai-frontend
+          docker push $IMAGE:latest
+          docker push $IMAGE:${{ github.sha }}
+
+      - name: Deploy on will
+        run: |
+          cd ~/actions-aifrontend-runner/_work/tender-ai-frontend/tender-ai-frontend/
+          docker compose up -d --force-recreate frontend
+          docker compose ps
+
+      - name: Summary
+        run: |
+          echo "### Tender AI Frontend deployed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Image: \`ghcr.io/${{ steps.lc.outputs.owner }}/tender-ai-frontend:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "SHA: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY

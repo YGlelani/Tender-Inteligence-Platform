@@ -1,0 +1,62 @@
+name: Build and Deploy Cache API
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: cache-deploy
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Lowercase owner for image tag
+        id: lc
+        run: |
+          echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - name: Log in to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io \
+            -u "${{ github.actor }}" \
+            --password-stdin
+
+      - name: Build image (native arm64)
+        run: |
+          IMAGE=ghcr.io/${{ steps.lc.outputs.owner }}/ cache-api
+          docker build \
+            -t $IMAGE:latest \
+            -t $IMAGE:${{ github.sha }} \
+            .
+
+      - name: Push image
+        run: |
+          IMAGE=ghcr.io/${{ steps.lc.outputs.owner }}/ cache-api
+          docker push $IMAGE:latest
+          docker push $IMAGE:${{ github.sha }}
+
+      - name: Deploy on will
+        run: |
+          cd ~/actions-runner-database/_work/tender-scrapping-database/tender-scrapping-database/
+          docker compose pull cache-api
+          docker compose up -d --force-recreate  cache-api
+          docker compose ps  cache-api
+
+      - name: Summary
+        run: |
+          echo "###Cache API deployed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Image: \`ghcr.io/${{ steps.lc.outputs.owner }}/cache-api:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "SHA: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Deployed on: \`will\`" >> $GITHUB_STEP_SUMMARY

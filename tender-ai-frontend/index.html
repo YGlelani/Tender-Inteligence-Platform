@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#103b52">
+    <title>AI Assistant — Tender Scrapper</title>
+    <link rel="stylesheet" href="css/dashboard.css?v=8">
+    <link rel="stylesheet" href="css/fonts.css">
+    <script src="scripts/vendor/echarts.min.js"></script>
+</head>
+<body>
+
+<div class="cmd-palette" id="cmd-palette">
+    <div class="cmd-box">
+        <input type="text" id="cmd-input" placeholder="Type a command or search..." autocomplete="off" aria-label="Command or search">
+        <div class="cmd-results">
+            <div class="cmd-item" data-action="documents"><img src="icons/upload.svg" class="icon" alt=""> Upload documents on Tender Scrapper</div>
+            <div class="cmd-item" data-action="tenders"><img src="icons/tenders.svg" class="icon" alt=""> View Tender Board</div>
+            <div class="cmd-item" data-action="profile"><img src="icons/profile.svg" class="icon" alt=""> View Profile</div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-layout">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-box" aria-hidden="true">TS</div>
+            <div class="logo-text">Tender Scrapper</div>
+        </div>
+        <a class="back-to-site" id="back-to-site" href="#"><span aria-hidden="true">&larr;</span> Back to Tender Scrapper</a>
+        <nav class="sidebar-nav">
+            <button type="button" class="nav-item active" data-target="view-dashboard">
+                <img src="icons/dashboard.svg" class="nav-icon" alt=""><span class="nav-label">Workspace</span>
+            </button>
+            <button type="button" class="nav-item" data-target="view-tenders">
+                <img src="icons/tenders.svg" class="nav-icon" alt=""><span class="nav-label">Tender Board</span>
+            </button>
+            <button type="button" class="nav-item" data-target="view-tasks">
+                <img src="icons/tasks.svg" class="nav-icon" alt=""><span class="nav-label">Agent Tasks</span>
+            </button>
+            <button type="button" class="nav-item" data-target="view-profile">
+                <img src="icons/profile.svg" class="nav-icon" alt=""><span class="nav-label">Business Profile</span>
+            </button>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="system-health" onclick="app.openCmdPalette()">
+                <div class="health-dot" id="health-dot"></div>
+                <span id="health-text">Checking...</span>
+                <span style="margin-left:auto; font-size:10px; opacity:0.5;">Ctrl+K</span>
+            </div>
+        </div>
+    </aside>
+
+    <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="app.closeSidebar()"></div>
+
+    <main class="main-content">
+        <header class="topbar">
+            <button type="button" class="btn-icon hamburger" id="hamburger" aria-label="Open navigation" onclick="app.toggleSidebar()">
+                <span class="hamburger-lines" aria-hidden="true"></span>
+            </button>
+
+            <div class="search-bar" onclick="app.openCmdPalette()">
+                <img src="icons/search.svg" class="nav-icon" alt="">
+                <input type="text" placeholder="Search or jump to... (Ctrl+K)" readonly style="cursor:pointer;" aria-label="Search or jump to (Ctrl+K)">
+            </div>
+            <button type="button" class="btn-icon search-toggle" id="search-toggle" aria-label="Search" onclick="app.openCmdPalette()">
+                <img src="icons/search.svg" class="nav-icon" alt="">
+            </button>
+
+            <div class="topbar-actions">
+                <button type="button" class="btn-icon" id="theme-toggle" aria-label="Toggle theme"><img src="icons/moon.svg" class="nav-icon" alt=""></button>
+                <div class="user-avatar" id="ui-avatar">??</div>
+            </div>
+        </header>
+
+        <div class="content-scroll" id="content-scroll">
+            <!-- VIEW: DASHBOARD -->
+            <section id="view-dashboard" class="view-section active">
+                <div class="dashboard-grid">
+                    <div class="main-col">
+                        <div class="hero-banner">
+                            <div class="hero-text">
+                                <h1>Welcome back, <span id="ui-biz-name">User</span>.</h1>
+                                <p>Your Agent is active. You have <strong id="stat-matches">0</strong> matching tenders.</p>
+                            </div>
+                        </div>
+                        <div class="chat-workspace">
+                            <div class="chat-header">
+                                <span><img src="icons/logo.svg" class="nav-icon" alt=""> Agent Assistant</span>
+                                <span class="badge" id="agent-status">Connecting...</span>
+                            </div>
+                            <div class="chat-messages" id="chat-messages">
+                                <div class="msg agent">Hello. I am ready to help. Ask me about open tenders, your matches or how to bid.</div>
+                            </div>
+                            <div class="chat-input-area">
+                                <input type="text" id="chat-input" placeholder="Ask the agent..." aria-label="Message to the agent">
+                                <button type="button" class="btn-send" id="btn-send" aria-label="Send"><img src="icons/send.svg" class="nav-icon" alt=""></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="side-col">
+                        <div class="panel">
+                            <div class="panel-title">Match score breakdown</div>
+                            <div id="echart-radar" class="radar-chart">
+                                <div class="empty-state">Your match breakdown appears once your business documents are on Tender Scrapper.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: TENDERS -->
+            <section id="view-tenders" class="view-section">
+                <div class="page-header">
+                    <h2>Tender Board</h2>
+                    <button type="button" class="btn-secondary" onclick="app.loadTenders()">Refresh DB</button>
+                </div>
+                <div class="tender-grid" id="tender-grid">
+                    <div class="empty-state">Loading tenders...</div>
+                </div>
+            </section>
+
+            <!-- VIEW: AGENT TASKS -->
+            <section id="view-tasks" class="view-section">
+                <div class="page-header">
+                    <h2>Agent Tasks</h2>
+                    <button type="button" class="btn-secondary" onclick="app.loadTasks()">Regenerate Plan</button>
+                </div>
+                <div class="task-board" id="task-board">
+                    <div class="empty-state">Click "Regenerate Plan" to load tasks.</div>
+                </div>
+            </section>
+
+            <!-- VIEW: PROFILE -->
+            <section id="view-profile" class="view-section">
+                <div class="page-header"><h2>Business Profile</h2></div>
+                <div class="profile-details" id="profile-details">
+                    <div class="empty-state">No business profile yet.</div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay" id="split-modal" role="dialog" aria-modal="true" aria-labelledby="doc-title">
+    <div class="modal-split">
+        <div class="split-left">
+            <div class="split-header"><h3 id="doc-title">Document</h3><button type="button" class="btn-close" onclick="app.closeModal('split-modal')" aria-label="Close"><img src="icons/close.svg" alt=""></button></div>
+            <div class="doc-text" id="doc-text">Loading...</div>
+        </div>
+        <div class="split-right">
+            <div class="split-header"><h3>Ask the Document</h3></div>
+            <div class="chat-messages" id="doc-chat-messages"><div class="msg agent">I have read the document. What would you like to know?</div></div>
+            <div class="chat-input-area">
+                <input type="text" id="doc-chat-input" placeholder="e.g. What is the CIDB requirement?" aria-label="Question about this document">
+                <button type="button" class="btn-send" id="doc-btn-send" aria-label="Send"><img src="icons/send.svg" class="nav-icon" alt=""></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="proposal-modal" role="dialog" aria-modal="true" aria-labelledby="proposal-title">
+    <div class="modal-content">
+        <button type="button" class="modal-close" onclick="app.closeModal('proposal-modal')" aria-label="Close"><img src="icons/close.svg" alt=""></button>
+        <h2 id="proposal-title">AI Proposal Builder</h2>
+        <p style="color:var(--text-muted); margin-bottom:24px;">Drafting cover letter based on your profile and tender requirements.</p>
+        <textarea id="proposal-text" class="proposal-editor" rows="15" placeholder="Generating..." aria-label="Draft proposal"></textarea>
+        <div style="margin-top:20px; display:flex; gap:12px;" class="proposal-actions">
+            <button type="button" class="btn-primary" onclick="app.generateProposalText()">Regenerate</button>
+            <button type="button" class="btn-secondary" onclick="app.copyProposal()">Copy to Clipboard</button>
+        </div>
+    </div>
+</div>
+
+
+<script src="scripts/utils.js?v=7"></script>
+<script src="scripts/components.js?v=10"></script>
+<script src="scripts/strategy.js?v=5"></script>
+<script src="scripts/app.js?v=10"></script>
+</body>
+</html>

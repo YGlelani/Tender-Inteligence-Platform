@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- One light/dark mode for the whole app; runs before the styles to avoid a flash. -->
+    <script src="scripts/theme.js"></script>
+<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tender Scrapper | My Profile</title>
+    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="stylesheet" href="./css/app-theme.css">
+    <link rel="stylesheet" href="./css/responsive-fix.css">
+    <link rel="stylesheet" href="./css/profile.css">
+</head>
+<body>
+<header class="app-topbar" id="appTopbar">
+    <form class="topbar-search" id="globalTenderSearch" role="search">
+        <label class="topbar-search-icon" for="globalSearchInput" aria-hidden="true"><svg class="lucide lucide-search" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg></label>
+        <input id="globalSearchInput" name="q" type="search" placeholder="Search tenders, proposals, documents..." autocomplete="off" aria-label="Search tenders, proposals, and documents">
+    </form>
+    <div class="topbar-actions">
+        <a class="topbar-icon-link" href="./alerts.html" aria-label="Open Smart Alerts" title="Smart Alerts">
+            <svg class="lucide lucide-bell topbar-bell-icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
+            <span class="topbar-notification-dot" aria-hidden="true" hidden></span>
+        </a>
+        <a class="topbar-user" href="./profile.html">
+            <span class="topbar-avatar" id="topbarAvatar" aria-hidden="true">U</span>
+            <span class="topbar-username" id="topbarUsername">User</span>
+        </a>
+    </div>
+</header>
+
+
+
+<aside class="sidebar">
+
+    <div class="logo-area">
+        <div class="logo-icon">TS</div>
+        <span>Tender Scrapper</span>
+    </div>
+
+    <button
+        class="mobile-sidebar-close"
+        id="mobileSidebarClose"
+        type="button"
+        aria-label="Close navigation">
+        <svg class="lucide lucide-x" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+    </button>
+
+    <nav class="sidebar-nav" id="sidebarNavigation">
+
+        <a
+            href="./dashboard.html"
+            class="nav-item"
+            data-page="overview">
+            <span class="nav-icon" aria-hidden="true"><svg class="lucide lucide-house" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span>
+            <span>Overview</span>
+        </a>
+
+        <a
+            href="./feed.html"
+            class="nav-item"
+            data-page="feed">
+            <span class="nav-icon" aria-hidden="true"><svg class="lucide lucide-newspaper" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 18h-5"/><path d="M18 14h-8"/><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0v-9a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="10" y="6" rx="1"/></svg></span>
+            <span>Tender Feed</span>
+        </a>
+
+        <a
+            href="./tender-search.html"
+            class="nav-item"
+            data-page="tender-search">
+            <span class="nav-icon" aria-hidden="true"><svg class="lucide lucide-search" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg></span>
+            <span>Search Tender</span>
+        </a>
+
+
+        <a
+            href="./saved-tenders.html" class="nav-item" data-page="saved-tenders"><span class="nav-icon" aria-hidden="true"><svg class="lucide lucide-star" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg></span><span>Saved Tenders</span></a>
+        
+
+    </nav>
+
+    <div class="sidebar-user">
+
+        
+
+        <button
+            id="logoutButton"
+            class="logout-button"
+            type="button">
+            <span><svg class="lucide lucide-log-out" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg></span>
+            <span>Logout</span>
+        </button>
+
+    </div>
+
+</aside>
+
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<button class="mobile-menu-button" id="mobileSidebarToggle" type="button" aria-label="Open navigation"><svg class="lucide lucide-menu" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg></button>
+
+<main class="main-content settings-page">
+    <header class="page-header settings-header profile-page-header">
+        <div><h1 class="page-title">My profile</h1><p class="page-subtitle">Your company details power Smart Alerts. Keep them complete to get better tender matches.</p></div>
+        <section class="profile-account-card" aria-label="Your account"><div class="profile-account-avatar" id="profileAccountAvatar" aria-hidden="true">U</div><div class="profile-account-info"><span id="profileAccountRole">Signed in as</span><strong id="profileAccountEmail">Loading account...</strong></div></section>
+    </header>
+    <section class="settings-content">
+        <div class="settings-tabs" role="tablist" aria-label="Settings sections">
+            <button class="settings-tab active" id="companyTab" type="button" role="tab" aria-selected="true" aria-controls="companyPanel">Company profile</button>
+            <button class="settings-tab" id="userTab" type="button" role="tab" aria-selected="false" aria-controls="userPanel">User profile</button>
+            <button class="settings-tab" id="notificationsTab" type="button" role="tab" aria-selected="false" aria-controls="notificationsPanel">Notifications</button>
+        </div>
+        <div id="profileStatus" class="settings-status" role="status" aria-live="polite" hidden></div>
+        <section class="settings-panel profile-company" id="companyPanel" role="tabpanel" aria-labelledby="companyTab">
+            <div class="profile-hero">
+                <div class="profile-hero-top">
+                <div class="profile-hero-avatar" id="profileHeroInitials" aria-hidden="true">C</div>
+                <div class="profile-hero-text">
+                    <h2 id="profileHeroName">Your company</h2>
+                    <p class="profile-hero-subline" id="profileHeroSummary">Choose your industry and head office province.</p>
+                </div>
+                <div class="profile-head-actions">
+                    <button class="btn-secondary" id="refreshFromDocuments" type="button"><span>Update from documents</span></button>
+                    <a class="btn-secondary" href="./onboarding.html"><svg class="lucide" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg><span>Business documents</span></a>
+                </div>
+                </div>
+                <p class="profile-source-line">These details come from your business documents. To change them, upload an updated document on <a href="./onboarding.html">Business Documents</a>.</p>
+                <dl class="profile-credentials" aria-label="Supplier credentials">
+                    <div><dt>CSD supplier number</dt><dd id="credentialCsd">Not added</dd></div>
+                    <div><dt>B-BBEE level</dt><dd id="credentialBbbee">Not added</dd></div>
+                    <div><dt>CIDB grade</dt><dd id="credentialCidb">Not added</dd></div>
+                    <div><dt>VAT number</dt><dd id="credentialVat">Not added</dd></div>
+                </dl>
+                <div class="profile-readiness">
+                    <div class="profile-readiness-track" id="profileReadinessBar" role="progressbar" aria-valuemin="0" aria-valuemax="12" aria-valuenow="0" aria-labelledby="profileReadinessText"><span id="profileReadinessFill"></span></div>
+                    <p><span id="profileReadinessText">Loading your company details...</span> <button type="button" class="profile-readiness-next" id="profileReadinessNext" hidden></button></p>
+                </div>
+            </div>
+
+            <form id="profileForm">
+                <details class="profile-section" id="profileSectionCompany" data-section="company">
+                    <summary>
+                        <span class="profile-icon" aria-hidden="true"><svg class="lucide" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12h4"/><path d="M10 8h4"/><path d="M14 21v-3a2 2 0 0 0-4 0v3"/><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"/><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/></svg></span>
+                        <span class="profile-section-title"><h3 id="sectionCompany">Company</h3><span class="profile-section-recap" data-recap></span></span>
+                        <span class="profile-section-check" data-check></span>
+                        <svg class="lucide profile-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                    </summary>
+                    <div class="profile-section-body">
+                        <div class="settings-grid">
+                            <div class="settings-field settings-field-full"><label for="businessName">Company name</label><input id="businessName" name="business_name" required minlength="2" maxlength="255" autocomplete="organization" readonly></div>
+                            <div class="settings-field"><label for="industry">Industry</label><select id="industry" name="industry" required disabled><option value="">Select industry</option><option>Information Technology</option><option>Construction</option><option>Consulting</option><option>Education and Training</option><option>Healthcare</option><option>Manufacturing</option><option>Transport and Logistics</option><option>Security</option><option>Professional Services</option><option>Other</option></select></div>
+                            <div class="settings-field"><label for="province">Head office province</label><select id="province" name="province" disabled><option value="">Select province</option><option>Eastern Cape</option><option>Free State</option><option>Gauteng</option><option>KwaZulu-Natal</option><option>Limpopo</option><option>Mpumalanga</option><option>Northern Cape</option><option>North West</option><option>Western Cape</option></select></div>
+                        </div>
+                    </div>
+                </details>
+
+                <details class="profile-section profile-section-compact" id="profileSectionRegistration" data-section="registration">
+                    <summary>
+                        <span class="profile-icon" aria-hidden="true"><svg class="lucide" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></span>
+                        <span class="profile-section-title"><h3 id="sectionRegistration">Registration</h3><span class="profile-section-recap" data-recap></span></span>
+                        <span class="profile-section-check" data-check></span>
+                        <svg class="lucide profile-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                    </summary>
+                    <div class="profile-section-body">
+                        <div class="settings-grid">
+                            <div class="settings-field"><label for="registrationNumber">CIPC registration number</label><input id="registrationNumber" name="registration_number" maxlength="100" readonly></div>
+                            <div class="settings-field"><label for="csdNumber">CSD supplier number</label><input id="csdNumber" name="csd_number" maxlength="100" readonly></div>
+                            <div class="settings-field"><label for="bbbeeLevel">B-BBEE level</label><input id="bbbeeLevel" name="bbbee_level" maxlength="50" readonly></div>
+                            <div class="settings-field"><label for="vatNumber">VAT number</label><input id="vatNumber" name="vat_number" maxlength="100" readonly></div>
+                            <div class="settings-field"><label for="cidbGrade">CIDB grade</label><input id="cidbGrade" name="cidb_grade" maxlength="50" readonly></div>
+                        </div>
+                    </div>
+                </details>
+
+                <details class="profile-section" id="profileSectionContact" data-section="contact">
+                    <summary>
+                        <span class="profile-icon" aria-hidden="true"><svg class="lucide" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"/></svg></span>
+                        <span class="profile-section-title"><h3 id="sectionContact">Contact</h3><span class="profile-section-recap" data-recap></span></span>
+                        <span class="profile-section-check" data-check></span>
+                        <svg class="lucide profile-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                    </summary>
+                    <div class="profile-section-body">
+                        <div class="settings-grid">
+                            <div class="settings-field"><label for="tenderEmail">Email</label><input id="tenderEmail" name="tender_email" type="email" maxlength="255" readonly></div>
+                            <div class="settings-field"><label for="phone">Phone</label><input id="phone" name="phone" type="tel" maxlength="50" autocomplete="tel" readonly></div>
+                            <div class="settings-field settings-field-full"><label for="businessAddress">Business address</label><textarea id="businessAddress" name="business_address" rows="2" maxlength="1000" autocomplete="street-address" readonly></textarea></div>
+                        </div>
+                    </div>
+                </details>
+
+                <details class="profile-section" id="profileSectionAbout" data-section="about">
+                    <summary>
+                        <span class="profile-icon" aria-hidden="true"><svg class="lucide" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 12h.01"/><path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M22 13a18.15 18.15 0 0 1-20 0"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg></span>
+                        <span class="profile-section-title"><h3 id="sectionServices">About the company</h3><span class="profile-section-recap" data-recap></span></span>
+                        <span class="profile-section-check" data-check></span>
+                        <svg class="lucide profile-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                    </summary>
+                    <div class="profile-section-body">
+                        <div class="settings-grid">
+                            <div class="settings-field settings-field-full"><label for="servicesOffered">Services offered</label><textarea id="servicesOffered" name="services_offered" rows="3" maxlength="3000" readonly></textarea></div>
+                            <div class="settings-field settings-field-full"><label for="companyDescription">Company description</label><textarea id="companyDescription" name="company_description" rows="4" maxlength="5000" readonly></textarea></div>
+                        </div>
+                    </div>
+                </details>
+
+                <details class="profile-section" id="profileSectionAlerts" data-section="alerts">
+                    <summary>
+                        <span class="profile-icon" aria-hidden="true"><svg class="lucide" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M22 8c0-2.3-.8-4.3-2-6"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/><path d="M4 2C2.8 3.7 2 5.7 2 8"/></svg></span>
+                        <span class="profile-section-title"><h3 id="sectionMatching">Tender alerts</h3><span class="profile-section-recap" data-recap></span></span>
+                        <span class="profile-section-check" data-check></span>
+                        <svg class="lucide profile-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                    </summary>
+                    <div class="profile-section-body">
+                        <div class="settings-grid">
+                            <fieldset class="settings-field settings-field-full profile-provinces">
+                                <legend>Provinces you can work in</legend>
+                                <div class="profile-province-options" id="tenderProvinces">
+                                    <label><input type="checkbox" value="Eastern Cape" disabled> Eastern Cape</label>
+                                    <label><input type="checkbox" value="Free State" disabled> Free State</label>
+                                    <label><input type="checkbox" value="Gauteng" disabled> Gauteng</label>
+                                    <label><input type="checkbox" value="KwaZulu-Natal" disabled> KwaZulu-Natal</label>
+                                    <label><input type="checkbox" value="Limpopo" disabled> Limpopo</label>
+                                    <label><input type="checkbox" value="Mpumalanga" disabled> Mpumalanga</label>
+                                    <label><input type="checkbox" value="Northern Cape" disabled> Northern Cape</label>
+                                    <label><input type="checkbox" value="North West" disabled> North West</label>
+                                    <label><input type="checkbox" value="Western Cape" disabled> Western Cape</label>
+                                </div>
+                                <small class="settings-muted">None ticked means all provinces.</small>
+                            </fieldset>
+                            <div class="settings-field settings-field-full">
+                                <label>Categories</label>
+                                <div class="profile-tag-input">
+                                    <ul class="profile-tag-list" id="categoryTags" aria-label="Selected categories"></ul>
+                                </div>
+                            </div>
+                            <div class="settings-field settings-field-full">
+                                <label>Keywords</label>
+                                <div class="profile-tag-input">
+                                    <ul class="profile-tag-list" id="keywordTags" aria-label="Selected keywords"></ul>
+                                </div>
+                            </div>
+                            <div class="settings-field"><label for="minTenderValue">Minimum value (R)</label><input id="minTenderValue" name="min_tender_value" type="number" min="0" step="1000" inputmode="numeric" readonly></div>
+                            <div class="settings-field"><label for="maxTenderValue">Maximum value (R)</label><input id="maxTenderValue" name="max_tender_value" type="number" min="0" step="1000" inputmode="numeric" readonly></div>
+                        </div>
+                    </div>
+                </details>
+
+            </form>
+        </section>
+        <section class="settings-panel account-panel" id="userPanel" role="tabpanel" aria-labelledby="userTab" hidden>
+            <div class="account-rows">
+            <details class="account-row" id="accountRowPersonal" open>
+                <summary>
+                    <span class="profile-icon" aria-hidden="true"><svg class="lucide" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></span>
+                    <span class="profile-section-title"><h2 id="personalDetailsHeading">Personal details</h2><span class="profile-section-recap" id="accountRowPersonalRecap">Your name and sign-in email</span></span>
+                    <svg class="lucide profile-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                </summary>
+                <div class="profile-section-body">
+                    <div id="userProfileStatus" class="settings-status" role="status" aria-live="polite" hidden></div>
+                    <form id="userProfileForm">
+                        <div class="settings-grid">
+                            <div class="settings-field"><label for="accountName">Full name</label><input id="accountName" name="full_name" required minlength="2" maxlength="255" autocomplete="name" placeholder="Your full name"></div>
+                            <div class="settings-field"><label for="accountEmail">Account email</label><input id="accountEmail" type="email" readonly placeholder="Loading account email..."></div>
+                        </div>
+                        <div class="settings-actions"><button class="btn-primary" id="saveUserProfile" type="submit">Save user profile</button></div>
+                    </form>
+                </div>
+            </details>
+            <details class="account-row" id="accountRowPassword">
+                <summary>
+                    <span class="profile-icon" aria-hidden="true"><svg class="lucide" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg></span>
+                    <span class="profile-section-title"><h2 id="changePasswordHeading">Change password</h2><span class="profile-section-recap" id="accountRowPasswordRecap">Use at least 8 characters with a number, an uppercase letter and a special character</span></span>
+                    <svg class="lucide profile-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                </summary>
+                <div class="profile-section-body">
+                    <div id="changePasswordStatus" class="settings-status" role="status" aria-live="polite" hidden></div>
+                    <form id="changePasswordForm">
+                        <div class="settings-grid">
+                            <div class="settings-field"><label for="currentPassword">Current password</label><input id="currentPassword" name="current_password" type="password" required maxlength="256" autocomplete="current-password"></div>
+                            <div class="settings-field"><label for="newPassword">New password</label><input id="newPassword" name="new_password" type="password" required minlength="8" maxlength="72" autocomplete="new-password"></div>
+                            <div class="settings-field"><label for="confirmPassword">Confirm new password</label><input id="confirmPassword" type="password" required minlength="8" maxlength="72" autocomplete="new-password"></div>
+                        </div>
+                        <div class="settings-actions"><button class="btn-primary" id="changePasswordButton" type="submit">Change password</button></div>
+                    </form>
+                </div>
+            </details>
+            <details class="account-row account-row-exit" id="accountRowExit">
+                <summary>
+                    <span class="profile-icon" aria-hidden="true"><svg class="lucide" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/></svg></span>
+                    <span class="profile-section-title"><h2 id="accountExitHeading">Pause or close your account</h2><span class="profile-section-recap" id="accountRowExitRecap">Deactivate and come back within 12 months, or delete everything now</span></span>
+                    <svg class="lucide profile-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                </summary>
+                <div class="profile-section-body">
+                    <div class="account-exit-options">
+                    <section class="deactivate-account" aria-labelledby="deactivateAccountHeading">
+                        <h3 id="deactivateAccountHeading">Deactivate account</h3>
+                        <ul class="account-exit-facts">
+                            <li>You're signed out and we stop sending tender emails.</li>
+                            <li>To come back, sign in and enter the code we email you.</li>
+                            <li>If you don't come back within 12 months, we delete your account. We'll email you 30 days before.</li>
+                        </ul>
+                        <div id="deactivateAccountStatus" class="settings-status" role="status" aria-live="polite" hidden></div>
+                        <form id="deactivateAccountForm">
+                            <div class="settings-grid">
+                                <div class="settings-field"><label for="deactivateAccountPassword">Your password</label><input id="deactivateAccountPassword" name="password" type="password" required maxlength="256" autocomplete="current-password"></div>
+                            </div>
+                            <div class="settings-actions"><button class="deactivate-account-button" id="deactivateAccountButton" type="submit">Deactivate my account</button></div>
+                        </form>
+                    </section>
+                    <section class="delete-account" aria-labelledby="deleteAccountHeading">
+                        <h3 id="deleteAccountHeading">Delete account</h3>
+                        <ul class="account-exit-facts">
+                            <li>Deletes your account, company profile, business documents and the details read from them.</li>
+                            <li>Also deletes saved tenders, alerts, tracked applications, notifications and AI assistant history.</li>
+                            <li>This can't be undone.</li>
+                        </ul>
+                        <div id="deleteAccountStatus" class="settings-status" role="status" aria-live="polite" hidden></div>
+                        <form id="deleteAccountForm">
+                            <div class="settings-grid">
+                                <div class="settings-field"><label for="deleteAccountPassword">Your password</label><input id="deleteAccountPassword" name="password" type="password" required maxlength="256" autocomplete="current-password"></div>
+                            </div>
+                            <label class="delete-account-confirm" for="deleteAccountConfirm"><input id="deleteAccountConfirm" type="checkbox" required> I understand my account and data will be permanently deleted.</label>
+                            <div class="settings-actions"><button class="delete-account-button" id="deleteAccountButton" type="submit">Delete my account</button></div>
+                        </form>
+                    </section>
+                    </div>
+                </div>
+            </details>
+            </div>
+        </section>
+        <section class="settings-panel" id="notificationsPanel" role="tabpanel" aria-labelledby="notificationsTab" hidden>
+            <h2>Notification preferences</h2>
+            <p class="settings-muted">Choose what shows under the bell at the top of the page and what we also send to your email.</p>
+            <div class="notification-preference-list" id="notificationPreferenceList" aria-busy="true">
+                <p class="settings-muted">Loading your notification settings...</p>
+            </div>
+            <p class="settings-muted notification-preferences-note" id="notificationPreferencesStatus" role="status" aria-live="polite"></p>
+        </section>
+    </section>
+</main>
+
+
+<script type="module" src="./scripts/cookies.js"></script>
+<script type="module" src="./scripts/navigation.js"></script>
+<script type="module" src="./scripts/profile.js"></script>
+<script type="module" src="./scripts/change-password.js"></script>
+<script type="module" src="./scripts/deactivate-account.js"></script>
+<script type="module" src="./scripts/delete-account.js"></script>
+<script type="module" src="./scripts/notification-preferences.js"></script>
+</body>
+</html>

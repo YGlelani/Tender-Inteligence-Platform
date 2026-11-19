@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- One light/dark mode for the whole app; runs before the styles to avoid a flash. -->
+    <script src="scripts/theme.js"></script>
+<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tender Scrapper - Login</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <link rel="stylesheet" href="./css/app-theme.css">
+</head>
+<body class="login-body">
+
+    <main class="page">
+        <section class="login-hero" aria-label="Tender Scrapper introduction">
+            <img class="login-hero-image" id="loginHeroImage" src="tender-hero.png" alt="Tender Scrapper — discover, track and manage tender opportunities">
+        </section>
+        <section class="login-card" aria-label="Sign in">
+            <div class="login-tools">
+                <a class="login-home" href="./">Back to home</a>
+                <button class="login-theme" id="loginTheme" type="button" aria-label="Switch to dark mode"></button>
+            </div>
+            <div class="brand">
+                <div class="brand-mark">TS</div>
+                <div>
+                    <span class="brand-name">Tender Scrapper</span>
+                    <span class="brand-subtitle">Welcome back</span>
+                </div>
+            </div>
+
+            <h1>Sign in to your account</h1>
+            <p class="welcome-text">Enter your details to continue.</p>
+
+            <form id="loginForm">
+                <div class="field">
+                    <label for="username">Email</label>
+                    <div class="input-container">
+                        <input
+                            id="username"
+                            name="username"
+                            placeholder="Enter your email address"
+                            type="text"
+                            inputmode="email"
+                            autocomplete="username"
+                            required
+                        >
+                        <span class="input-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
+                                      stroke="currentColor"
+                                      stroke-width="2"
+                                      stroke-linejoin="round"
+                                      stroke-linecap="round"/>
+                            </svg>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="password">Password</label>
+                    <div class="input-container">
+                        <input
+                            id="password"
+                            name="password"
+                            placeholder="Enter password"
+                            type="password"
+                            autocomplete="current-password"
+                            required
+                        >
+                        <button
+                            type="button"
+                            id="togglePassword"
+                            class="password-toggle"
+                            aria-label="Show password"
+                            title="Show password"
+                        >
+                            <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                      stroke="currentColor"
+                                      stroke-width="1.8"
+                                      stroke-linejoin="round"
+                                      stroke-linecap="round"/>
+                                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                      stroke="currentColor"
+                                      stroke-width="1.8"
+                                      stroke-linejoin="round"
+                                      stroke-linecap="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <p class="forgot-link"><a href="#" id="forgotPasswordLink">Forgot password?</a></p>
+
+                <button class="submit" type="submit" id="loginButton">
+                    <span id="loginButtonText">SIGN IN</span>
+                </button>
+
+                <p id="loginStatus" class="status" role="alert" aria-live="polite"></p>
+            </form>
+
+            <form id="forgotForm" hidden>
+                <p class="welcome-text">Enter the email address you use to sign in. We'll email you a 6-digit code.</p>
+                <div class="field">
+                    <label for="forgotEmail">Email</label>
+                    <div class="input-container">
+                        <input id="forgotEmail" name="email" type="email" placeholder="you@company.co.za" autocomplete="email" required>
+                    </div>
+                </div>
+                <button class="submit" type="submit" id="forgotButton">SEND CODE</button>
+                <p id="forgotStatus" class="status" role="alert" aria-live="polite"></p>
+                <p class="signup-link"><a href="#" data-back-to-login>Back to sign in</a></p>
+            </form>
+
+            <form id="resetForm" hidden>
+                <p class="welcome-text" id="resetIntro">Enter the 6-digit code we emailed you and choose a new password.</p>
+                <div class="field">
+                    <label for="resetCode">6-digit code</label>
+                    <div class="input-container">
+                        <input id="resetCode" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="123456" required>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="resetPassword">New password</label>
+                    <div class="input-container">
+                        <input id="resetPassword" name="new_password" type="password" minlength="8" maxlength="72" autocomplete="new-password" required>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="resetConfirm">Confirm new password</label>
+                    <div class="input-container">
+                        <input id="resetConfirm" type="password" minlength="8" maxlength="72" autocomplete="new-password" required>
+                    </div>
+                </div>
+                <p class="welcome-text reset-hint">At least 8 characters, with a number, an uppercase letter and a special character.</p>
+                <button class="submit" type="submit" id="resetButton">RESET PASSWORD</button>
+                <p id="resetStatus" class="status" role="alert" aria-live="polite"></p>
+                <p class="signup-link"><a href="#" id="resendCodeLink">Send a new code</a> · <a href="#" data-back-to-login>Back to sign in</a></p>
+            </form>
+
+            <!-- Shown after signing in to an account its owner deactivated (script.js). -->
+            <form id="reactivateForm" hidden>
+                <p class="welcome-text">This account is deactivated. Enter the 6-digit code we emailed you to reactivate it. Everything you saved is still there.</p>
+                <div class="field">
+                    <label for="reactivateCode">6-digit code</label>
+                    <div class="input-container">
+                        <input id="reactivateCode" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="123456" required>
+                    </div>
+                </div>
+                <button class="submit" type="submit" id="reactivateButton">REACTIVATE MY ACCOUNT</button>
+                <p id="reactivateStatus" class="status" role="alert" aria-live="polite"></p>
+                <p class="signup-link"><a href="#" id="reactivateResendLink">Send a new code</a> · <a href="#" data-back-to-login>Back to sign in</a></p>
+            </form>
+
+            <p class="signup-link" id="signupLine">
+                Don't have an account?
+                <a id="signupLink" href="#" data-server-port="8008" data-server-path="/" target="_self">Sign up</a>
+            </p>
+        </section>
+    </main>
+
+    <script src="scripts/session-check.js"></script>
+    <script src="script.js"></script>
+    <script src="scripts/forgot-password.js"></script>
+</body>
+</html>

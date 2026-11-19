@@ -1,0 +1,45 @@
+services:
+  signup-api:
+    build: .
+    container_name: tender-signup-api
+    ports:
+      - "8007:8000"
+    environment:
+      DATABASE_PATH: /data/tenders.db
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://129.151.181.87:8008,http://129.151.181.87:8009}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      EMAIL_CONFIRMATION_URL: ${EMAIL_CONFIRMATION_URL}
+      LOGIN_URL: ${LOGIN_URL}
+      EMAIL_FROM: ${EMAIL_FROM}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
+      VERIFICATION_TOKEN_EXPIRE_MINUTES: ${VERIFICATION_TOKEN_EXPIRE_MINUTES:-30}
+      NOTIFICATIONS_API_URL: ${NOTIFICATIONS_API_URL:-http://tender-notifications-api:8000}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      # Account deletion: the AI agent on tender-scrapping-net and the key it expects.
+      AGENT_API_URL: ${AGENT_API_URL:-http://tender-agent-api:9000}
+      ACCOUNT_DELETION_KEY: ${ACCOUNT_DELETION_KEY:-}
+    volumes:
+      - tender-sqlite-data:/data
+    networks:
+      - tender-scrapping-net
+    restart: unless-stopped
+    # Keep at most 3 x 10 MB of logs; older entries are overwritten.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  tender-sqlite-data:
+    external: true
+    name: tender-scrapping_tender-sqlite-data
+
+networks:
+  tender-scrapping-net:
+    external: true
