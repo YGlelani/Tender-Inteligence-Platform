@@ -69,7 +69,7 @@ _API_DOCS_ON = os.getenv("ENABLE_API_DOCS", "").strip().lower() in {"1", "true",
 API_DOCS = {} if _API_DOCS_ON else {"docs_url": None, "redoc_url": None, "openapi_url": None}
 
 # Web pages allowed to call this API from a browser, comma-separated
-# (for example http://129.151.181.87:8009). Set in compose.yaml.
+# (for example https://app.example.com). Set per environment in Compose.
 CORS_ORIGINS = [origin.strip() for origin in os.getenv("CORS_ORIGINS", "").split(",") if origin.strip()]
 if not CORS_ORIGINS:
     logging.getLogger(__name__).warning("CORS_ORIGINS is not set: browsers on other sites cannot call this API.")

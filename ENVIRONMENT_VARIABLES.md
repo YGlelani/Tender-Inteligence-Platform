@@ -73,7 +73,7 @@ Generate each with `openssl rand -hex 32`. Every value must be new and different
 | `STAGING_ML_PORT` | 19004 (127.0.0.1 only) | 9004 |
 | `STAGING_ALERTS_PORT` | 19005 | 9005 |
 | `STAGING_NOTIFICATIONS_PORT` | 19007 | 9007 |
-| `STAGING_OVERVIEW_PORT`, `STAGING_SIGNUP_FRONTEND_PORT`, `STAGING_BUSINESS_PROFILE_PORT`, `STAGING_TRACKER_PORT`, `STAGING_SAVED_TENDERS_PORT`, `STAGING_TENDER_SEARCH_PORT` | 18005, 18008, 19002, 19006, 19008, 19009 | services not in this repository yet; used only by the main site's links |
+| `STAGING_SIGNUP_FRONTEND_PORT` | 18008 | separately deployed signup site and verification page |
 
 ### Fixed in `compose.staging.yaml` (deliberately not configurable)
 

@@ -1,3 +1,7 @@
+# Historical deployment note
+
+This presentation includes the former single-host deployment model. Use the repository-root `docs/` deployment guides for current development, staging, and production configuration.
+
 # TenderScraping Dashboard — Presentation Prep
 
 A speaker's guide for presenting the frontend dashboard. Read this once before
@@ -67,7 +71,7 @@ Points worth making (shows you understand it, not just that it runs):
 
 ## 4. Live demo script (5–7 min)
 
-Have `http://129.151.181.87:8009/` open and the backends running first.
+Have `http://your-deployment-host:8009/` open and the backends running first.
 **Pre-flight:** load the page once before presenting so assets are warm.
 
 1. **Overview page.**
@@ -107,7 +111,7 @@ Have `http://129.151.181.87:8009/` open and the backends running first.
 
 - The dashboard is a **Docker container** running **nginx**, published on port
   **8009**, with `restart: unless-stopped` so it comes back after a reboot.
-- Reachable at **`129.151.181.87:8009`** — the `public_ip:port` format the brief
+- Reachable at **`your-deployment-host:8009`** — the `public_ip:port` format the brief
   asked for.
 - **Automated:** a **self-hosted GitHub Actions runner** on the server deploys
   on every push to `main` (`docker compose up -d --build`), then **health-checks
@@ -188,6 +192,6 @@ roadmap.)
   detail.
 - **How:** static front end (vanilla JS) + nginx + Docker, calling 5 backend
   services, cache-first.
-- **Where:** deployed on our server at `129.151.181.87:8009`, auto-deployed via
+- **Where:** deployed on our server at `your-deployment-host:8009`, auto-deployed via
   a self-hosted CI runner with a health check.
 - **Next:** HTTPS, auth, single-origin API proxy.

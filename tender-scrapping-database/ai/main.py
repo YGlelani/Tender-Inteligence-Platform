@@ -13,7 +13,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
-from ai import AIServiceError, OllamaClient
+try:
+    # The monorepo test suite can resolve ``ai`` as a package.
+    from ai.ai import AIServiceError, OllamaClient
+except ImportError:
+    # Uvicorn runs ``main:app`` from this directory where ai.py is top-level.
+    from ai import AIServiceError, OllamaClient
 from bid_strategy import generate_bid_strategy
 from pdf_service import MAX_PDF_BYTES, PDFExtractionError, extract_pdf_text
 from profile_parser import parse_profile_from_text
@@ -73,7 +78,7 @@ _API_DOCS_ON = os.getenv("ENABLE_API_DOCS", "").strip().lower() in {"1", "true",
 API_DOCS = {} if _API_DOCS_ON else {"docs_url": None, "redoc_url": None, "openapi_url": None}
 
 # Web pages allowed to call this API from a browser, comma-separated
-# (for example http://129.151.181.87:8009). Set in compose.yaml.
+# (for example https://app.example.com). Set per environment in Compose.
 CORS_ORIGINS = [origin.strip() for origin in os.getenv("CORS_ORIGINS", "").split(",") if origin.strip()]
 if not CORS_ORIGINS:
     logging.getLogger(__name__).warning("CORS_ORIGINS is not set: browsers on other sites cannot call this API.")

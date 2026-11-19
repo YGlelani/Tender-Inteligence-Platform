@@ -1,12 +1,20 @@
+name: ${COMPOSE_PROJECT_NAME:-tender-dev}-signup
+
 services:
   signup-api:
+    image: tender-signup-api:${IMAGE_TAG:-local}
     build: .
-    container_name: tender-signup-api
     ports:
-      - "8007:8000"
+      - "${PUBLISH_ADDRESS:-127.0.0.1}:${SIGNUP_HOST_PORT:-8007}:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     environment:
       DATABASE_PATH: /data/tenders.db
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://129.151.181.87:8008,http://129.151.181.87:8009}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8008,http://localhost:8009}
       JWT_SECRET: ${JWT_SECRET}
       JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
       EMAIL_CONFIRMATION_URL: ${EMAIL_CONFIRMATION_URL}
@@ -21,7 +29,7 @@ services:
       NOTIFICATIONS_API_URL: ${NOTIFICATIONS_API_URL:-http://tender-notifications-api:8000}
       INTERNAL_API_KEY: ${INTERNAL_API_KEY}
       # Account deletion: the AI agent on tender-scrapping-net and the key it expects.
-      AGENT_API_URL: ${AGENT_API_URL:-http://tender-agent-api:9000}
+      AGENT_API_URL: ${AGENT_API_URL:-http://agent-api:9000}
       ACCOUNT_DELETION_KEY: ${ACCOUNT_DELETION_KEY:-}
     volumes:
       - tender-sqlite-data:/data
@@ -38,8 +46,9 @@ services:
 volumes:
   tender-sqlite-data:
     external: true
-    name: tender-scrapping_tender-sqlite-data
+    name: ${TENDER_SQLITE_VOLUME:-tender-dev-tender-sqlite-data}
 
 networks:
   tender-scrapping-net:
     external: true
+    name: ${TENDER_NETWORK_NAME:-tender-dev-net}

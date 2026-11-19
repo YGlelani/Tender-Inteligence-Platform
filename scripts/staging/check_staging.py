@@ -47,9 +47,7 @@ PRODUCTION_FILES = [
 ]
 # Production ports of services that live outside this repository (scripts/config.js),
 # plus the port USER_SERVER_PORT is set to for the main site and the old PostgreSQL port.
-PRODUCTION_PORTS_OUTSIDE_REPO = {8005: "overview API", 8008: "signup site", 8009: "main site (USER_SERVER_PORT)",
-                                 9002: "business profile API", 9006: "application tracker API",
-                                 9008: "saved tenders API", 9009: "tender search API", 5433: "PostgreSQL"}
+PRODUCTION_PORTS_OUTSIDE_REPO = {8008: "signup site", 8009: "main site (USER_SERVER_PORT)", 5433: "PostgreSQL"}
 SECRET_VARS = ["STAGING_JWT_SECRET", "STAGING_INTERNAL_API_KEY", "STAGING_ACCOUNT_DELETION_KEY",
                "STAGING_AI_SERVICE_API_KEY", "STAGING_SCRAPER_API_KEY"]
 OPTIONAL_SECRET_VARS = ["STAGING_AZURE_AI_API_KEY", "STAGING_AZURE_EMBED_API_KEY", "STAGING_SMTP_PASSWORD",

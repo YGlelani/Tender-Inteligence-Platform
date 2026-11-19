@@ -1,7 +1,8 @@
 import os
 from contextlib import asynccontextmanager
+from datetime import date, timedelta
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -65,6 +66,34 @@ app.include_router(stats_router.router)
 @app.get("/health")
 async def health():
     return {"status": "ok", "service": "client-api"}
+
+
+@app.get("/overview/stats")
+async def overview_stats():
+    if db is None:
+        raise HTTPException(503, "Database is not initialized")
+    return await db.get_dashboard_stats()
+
+
+@app.get("/overview/volume")
+async def overview_volume(days: int = Query(30, ge=1, le=365)):
+    if db is None:
+        raise HTTPException(503, "Database is not initialized")
+    start = date.today() - timedelta(days=days - 1)
+    async with db._connect() as connection:
+        cursor = await connection.execute(
+            """SELECT date(published_date) AS day, COUNT(*) AS count
+               FROM tenders
+               WHERE published_date IS NOT NULL AND date(published_date) >= ?
+               GROUP BY date(published_date) ORDER BY day""",
+            (start.isoformat(),),
+        )
+        counts = {row["day"]: row["count"] for row in await cursor.fetchall() if row["day"]}
+    daily = []
+    for offset in range(days):
+        day = (start + timedelta(days=offset)).isoformat()
+        daily.append({"date": day, "count": counts.get(day, 0)})
+    return {"days": days, "total": sum(item["count"] for item in daily), "daily": daily}
 
 
 @app.get("/")

@@ -5,18 +5,26 @@ x-logging: &default-logging
     max-size: "10m"
     max-file: "3"
 
+name: ${COMPOSE_PROJECT_NAME:-tender-dev}-alerts
+
 services:
   alerts-api:
+    image: tender-alerts-api:${IMAGE_TAG:-local}
     logging: *default-logging
     build: .
-    container_name: alerts-api
     restart: unless-stopped
-    env_file: [.env]
+    env_file: ["${SERVICE_ENV_FILE:-.env}"]
     environment:
       DATABASE_PATH: /data/tenders.db
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://129.151.181.87:8009}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8009}
     ports:
-      - "9005:9005"
+      - "${PUBLISH_ADDRESS:-127.0.0.1}:${ALERTS_HOST_PORT:-9005}:9005"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9005/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     volumes:
       - tender-sqlite-data:/data
     networks:
@@ -24,8 +32,8 @@ services:
 volumes:
   tender-sqlite-data:
     external: true
-    name: tender-scrapping_tender-sqlite-data
+    name: ${TENDER_SQLITE_VOLUME:-tender-dev-tender-sqlite-data}
 networks:
   tender-net:
     external: true
-    name: tender-scrapping-net
+    name: ${TENDER_NETWORK_NAME:-tender-dev-net}

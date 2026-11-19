@@ -1,14 +1,22 @@
+name: ${COMPOSE_PROJECT_NAME:-tender-dev}-ml
+
 services:
   tender-ml:
+    image: tender-ml:${IMAGE_TAG:-local}
     build: .
-    container_name: tender-ml
     restart: unless-stopped
     environment:
       DATABASE_PATH: /data/tenders.db
       MODEL_PATH: /models/category_model.joblib
       REPORTS_DIR: /models/reports
     ports:
-      - "9004:9004"
+      - "${PUBLISH_ADDRESS:-127.0.0.1}:${TENDER_ML_HOST_PORT:-9004}:9004"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9004/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     volumes:
       # The shared database is opened read-only by the code. It is not mounted with :ro
       # because SQLite needs to see the database's WAL files to read it safely.
@@ -19,9 +27,9 @@ services:
 volumes:
   tender-sqlite-data:
     external: true
-    name: tender-scrapping_tender-sqlite-data
+    name: ${TENDER_SQLITE_VOLUME:-tender-dev-tender-sqlite-data}
   tender-ml-models:
 networks:
   tender-net:
     external: true
-    name: tender-scrapping-net
+    name: ${TENDER_NETWORK_NAME:-tender-dev-net}

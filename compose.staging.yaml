@@ -429,11 +429,11 @@ services:
         aiAssistant=${STAGING_AI_FRONTEND_PORT:-19001},
         aiAgent=${STAGING_AGENT_PORT:-19000},
         tenderAgent=${STAGING_AGENT_PORT:-19000},
-        overview=${STAGING_OVERVIEW_PORT:-18005},
-        businessProfile=${STAGING_BUSINESS_PROFILE_PORT:-19002},
-        applicationTracker=${STAGING_TRACKER_PORT:-19006},
-        savedTenders=${STAGING_SAVED_TENDERS_PORT:-19008},
-        tenderSearch=${STAGING_TENDER_SEARCH_PORT:-19009}
+        overview=${STAGING_CLIENT_PORT:-18001},
+        businessProfile=${STAGING_ALERTS_PORT:-19005},
+        applicationTracker=${STAGING_NOTIFICATIONS_PORT:-19007},
+        savedTenders=${STAGING_NOTIFICATIONS_PORT:-19007},
+        tenderSearch=${STAGING_CLIENT_PORT:-18001}
     ports:
       - "${STAGING_FRONTEND_PORT:-18009}:80"
     healthcheck:

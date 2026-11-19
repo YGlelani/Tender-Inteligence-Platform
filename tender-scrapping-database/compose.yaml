@@ -1,4 +1,4 @@
-name: tender-scrapping
+name: ${COMPOSE_PROJECT_NAME:-tender-dev}-data
 
 # Every container keeps at most 3 x 10 MB of logs; older entries are overwritten.
 x-logging: &default-logging
@@ -11,6 +11,7 @@ services:
   # Run the one-time PostgreSQL -> SQLite import before starting APIs.
   # This service writes only to the dedicated SQLite volume; it never modifies PostgreSQL.
   sqlite-migrate:
+    profiles: [migration]
     logging: *default-logging
     image: python:3.11-slim
     working_dir: /src
@@ -28,37 +29,49 @@ services:
 
   # Scraper and client APIs share the canonical tender database.
   scraper-api:
+    image: tender-scraper-api:${IMAGE_TAG:-local}
     logging: *default-logging
     build:
       context: .
       dockerfile: scraper-api/Dockerfile
-    container_name: tender-scraper-api
     restart: unless-stopped
     environment:
       DATABASE_PATH: /data/tenders.db
       API_KEY: ${API_KEY}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://129.151.181.87:8009}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8009}
       ETENDERS_BASE_URL: ${ETENDERS_BASE_URL}
       ETENDERS_MAX_PAGES_DEFAULT: "10"
     ports:
-      - "8000:8000"
+      - "${PUBLISH_ADDRESS:-127.0.0.1}:${SCRAPER_HOST_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     volumes:
       - tender-sqlite-data:/data
     networks:
       - tender-net
 
   client-api:
+    image: tender-client-api:${IMAGE_TAG:-local}
     logging: *default-logging
     build:
       context: .
       dockerfile: client-api/Dockerfile
-    container_name: tender-client-api
     restart: unless-stopped
     environment:
       DATABASE_PATH: /data/tenders.db
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://129.151.181.87:8009}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8009}
     ports:
-      - "8001:8001"
+      - "${PUBLISH_ADDRESS:-127.0.0.1}:${CLIENT_HOST_PORT:-8001}:8001"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     volumes:
       - tender-sqlite-data:/data
     networks:
@@ -66,10 +79,10 @@ services:
 
   # AI service keeps its incompatible AI-specific schema in a separate database.
   ai:
+    image: tender-ai-api:${IMAGE_TAG:-local}
     logging: *default-logging
     build:
       context: ./ai
-    container_name: tender-ai
     restart: unless-stopped
     environment:
       OLLAMA_BASE_URL: http://ollama:11434
@@ -94,12 +107,9 @@ services:
   ollama:
     logging: *default-logging
     image: ollama/ollama:latest
-    container_name: tender-ollama
     restart: unless-stopped
     environment:
       OLLAMA_KEEP_ALIVE: "-1"
-    ports:
-      - "11434:11434"
     volumes:
       - ollama-data:/root/.ollama
     healthcheck:
@@ -114,10 +124,7 @@ services:
   redis:
     logging: *default-logging
     image: redis:8
-    container_name: tender-redis
     restart: unless-stopped
-    ports:
-      - "6379:6379"
     volumes:
       - redis-data:/data
     healthcheck:
@@ -130,8 +137,10 @@ services:
 
   lelani-cache-api:
     logging: *default-logging
-    image: ghcr.io/yglelani/lelani-cache-api:latest
-    container_name: lelani-cache-api
+    image: tender-cache-api:${IMAGE_TAG:-local}
+    build:
+      context: ../cache-api
+      dockerfile: Dockerfile
     restart: unless-stopped
     environment:
       REDIS_URL: redis://redis:6379/0
@@ -141,9 +150,15 @@ services:
       CACHE_TTL_DETAIL: "600"
       CACHE_KEY_PREFIX: lelani
       UPSTREAM_TIMEOUT: "30"
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://129.151.181.87:8009}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8009}
     ports:
-      - "8003:8003"
+      - "${PUBLISH_ADDRESS:-127.0.0.1}:${CACHE_HOST_PORT:-8003}:8003"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8003/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     depends_on:
       redis:
         condition: service_healthy
@@ -154,6 +169,8 @@ services:
 
 volumes:
   tender-sqlite-data:
+    external: true
+    name: ${TENDER_SQLITE_VOLUME:-tender-dev-tender-sqlite-data}
   ollama-data:
   ai-data:
   redis-data:
@@ -161,4 +178,4 @@ volumes:
 networks:
   tender-net:
     external: true
-    name: tender-scrapping-net
+    name: ${TENDER_NETWORK_NAME:-tender-dev-net}

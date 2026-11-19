@@ -1,12 +1,23 @@
-name: tender-ai-frontend
+name: ${COMPOSE_PROJECT_NAME:-tender-dev}-ai-web
 
 services:
   frontend:
-    image: ghcr.io/yglelani/tender-ai-frontend:latest
-    container_name: tender-ai-frontend
+    image: tender-ai-frontend:${IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      AGENT_URL: ${AGENT_URL:?Set the environment-specific public agent URL}
+      LOGIN_URL: ${LOGIN_URL:?Set the environment-specific public login URL}
     restart: unless-stopped
     ports:
-      - "9001:80"
+      - "${PUBLISH_ADDRESS:-127.0.0.1}:${TENDER_AI_FRONTEND_HOST_PORT:-9001}:80"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
     logging:
       driver: json-file
       options:
@@ -18,4 +29,4 @@ services:
 networks:
   tender-scrapping-net:
     external: true
-    name: tender-scrapping-net
+    name: ${TENDER_NETWORK_NAME:-tender-dev-net}

@@ -9,7 +9,7 @@
 # and the container replaces it at start-up (docker-entrypoint.d/40-runtime-config.sh).
 
 # Environment example file is kept out of this repository
-.env.example
+!.env.example
 
 # Local editor and tool files
 .claude/

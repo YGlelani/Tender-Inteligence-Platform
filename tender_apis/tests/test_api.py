@@ -20,10 +20,20 @@ client = TestClient(main.app)
 SHARED_SCHEMA = """
 CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE,
     email TEXT NOT NULL UNIQUE, hashed_password TEXT NOT NULL DEFAULT 'x', is_active INTEGER NOT NULL DEFAULT 1);
+CREATE TABLE organisations (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE);
+CREATE TABLE categories (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE);
 CREATE TABLE tenders (id INTEGER PRIMARY KEY AUTOINCREMENT, tender_number TEXT NOT NULL UNIQUE,
-    title TEXT NOT NULL, closing_date TEXT, status TEXT DEFAULT 'Open');
+    title TEXT NOT NULL, description TEXT, organisation_id INTEGER, category_id INTEGER,
+    province TEXT, closing_date TEXT, published_date TEXT, tender_url TEXT, status TEXT DEFAULT 'Open');
 CREATE TABLE saved_tenders (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL,
-    tender_id INTEGER NOT NULL, UNIQUE(user_id, tender_id));
+    tender_id INTEGER NOT NULL, notes TEXT, saved_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UNIQUE(user_id, tender_id));
+CREATE TABLE tender_applications (id TEXT PRIMARY KEY, user_id INTEGER NOT NULL, tender_id INTEGER NOT NULL,
+    status TEXT NOT NULL, application_deadline TEXT, submission_date TEXT, notes TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, tender_id));
+CREATE TABLE tender_application_history (id TEXT PRIMARY KEY, application_id TEXT NOT NULL,
+    previous_status TEXT, new_status TEXT NOT NULL, changed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE profile_alert_notifications (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL,
     profile_id INTEGER NOT NULL DEFAULT 1, tender_id INTEGER NOT NULL, score INTEGER NOT NULL,
     reasons TEXT NOT NULL DEFAULT '[]', matched_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, read_at TEXT,
@@ -87,6 +97,43 @@ def test_health_reports_service_and_database():
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json() == {"status": "healthy", "service": "notifications-api", "database": "connected"}
+
+
+def test_saved_tenders_are_private_and_support_notes():
+    tender_id = add_saved_tender(1, "SAVE-1", "2099-01-10")
+    headers = auth()
+    assert client.get("/api/saved-tenders", headers=headers).json()["total"] == 1
+    assert client.get("/api/saved-tenders", headers=auth("bob@acme.co.za")).json()["total"] == 0
+    updated = client.patch(f"/api/saved-tenders/{tender_id}", json={"notes": "Review bid"}, headers=headers)
+    assert updated.status_code == 200
+    assert updated.json()["notes"] == "Review bid"
+    assert client.delete(f"/api/saved-tenders/{tender_id}", headers=auth("bob@acme.co.za")).status_code == 404
+    assert client.delete(f"/api/saved-tenders/{tender_id}", headers=headers).status_code == 204
+
+
+def test_application_tracker_crud_is_private_and_records_status_changes():
+    tender_id = add_saved_tender(1, "TRACK-1", "2099-01-10")
+    created = client.post("/api/applications", json={"tender_id": tender_id, "notes": "Prepare quote"}, headers=auth())
+    assert created.status_code == 201
+    application = created.json()
+    assert application["tender_reference"] == "TRACK-1"
+    assert application["status"] == "Interested"
+    assert client.get("/api/applications", headers=auth("bob@acme.co.za")).json()["total"] == 0
+    updated = client.patch(f"/api/applications/{application['id']}",
+                           json={"status": "Preparing", "notes": "Collect supplier quotes"}, headers=auth())
+    assert updated.status_code == 200
+    assert updated.json()["status"] == "Preparing"
+    assert len(sql("SELECT * FROM tender_application_history WHERE application_id=?", (application["id"],))) == 2
+    assert client.get("/api/applications/stats", headers=auth()).json()["counts"]["Preparing"] == 1
+    assert client.delete(f"/api/applications/{application['id']}", headers=auth()).status_code == 204
+
+
+def test_application_tracker_rejects_unknown_tender_and_duplicate():
+    assert client.post("/api/applications", json={"tender_number": "missing"}, headers=auth()).status_code == 404
+    tender_id = add_saved_tender(1, "TRACK-2", "2099-01-10")
+    payload = {"tender_id": tender_id}
+    assert client.post("/api/applications", json=payload, headers=auth()).status_code == 201
+    assert client.post("/api/applications", json=payload, headers=auth()).status_code == 409
 
 
 def test_authentication_is_required():

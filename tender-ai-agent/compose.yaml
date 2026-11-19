@@ -1,4 +1,4 @@
-name: tender-ai-agent
+name: ${COMPOSE_PROJECT_NAME:-tender-dev}-agent
 
 # Every container keeps at most 3 x 10 MB of logs; older entries are overwritten.
 x-logging: &default-logging
@@ -10,8 +10,10 @@ x-logging: &default-logging
 services:
   agent-api:
     logging: *default-logging
-    image: ghcr.io/yglelani/tender-ai-agent:latest
-    container_name: tender-agent-api
+    image: tender-ai-agent:${IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
 
     environment:
@@ -49,14 +51,20 @@ services:
       AZURE_AI_VISION_DEPLOYMENT: ${AZURE_AI_VISION_DEPLOYMENT:-}
       AGENT_MAX_ITERATIONS: "4"
       AGENT_TIMEOUT_SECONDS: "45"
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://129.151.181.87:8009,http://129.151.181.87:9001}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8009,http://localhost:9001}
       # LangSmith tracing stays off. Traces would copy chat messages and document
       # text to a third-party service that the Privacy Policy does not list.
       LANGSMITH_TRACING: "false"
       LANGCHAIN_TRACING_V2: "false"
 
     ports:
-      - "9000:9000"
+      - "${PUBLISH_ADDRESS:-127.0.0.1}:${AGENT_HOST_PORT:-9000}:9000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
     # Uploaded onboarding documents + their SQLite index
     volumes:
@@ -71,4 +79,4 @@ volumes:
 networks:
   tender-scrapping-net:
     external: true
-    name: tender-scrapping-net
+    name: ${TENDER_NETWORK_NAME:-tender-dev-net}

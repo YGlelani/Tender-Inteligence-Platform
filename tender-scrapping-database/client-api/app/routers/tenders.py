@@ -47,12 +47,27 @@ async def list_tenders(
 
 @router.get("/search")
 async def search_tenders(
-    q: str = Query(..., min_length=1),
+    q: Optional[str] = Query(None, max_length=200),
+    province: Optional[str] = Query(None, max_length=100),
+    category: Optional[str] = Query(None, max_length=100),
+    organisation: Optional[str] = Query(None, max_length=200),
+    status: Optional[str] = Query(None, max_length=30),
+    include_closed: bool = Query(False),
     limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
 ):
     db = _db()
-    rows = await db.list_tenders(keyword=q, limit=limit)
-    return {"query": q, "count": len(rows), "tenders": rows}
+    selected_status = status or (None if include_closed else "Open")
+    filters = {
+        "status": selected_status,
+        "province": province,
+        "category": category,
+        "organisation": organisation,
+        "keyword": q,
+    }
+    rows = await db.list_tenders(**filters, limit=limit, offset=offset)
+    total = await db.count_tenders(**filters)
+    return {"query": q, "count": len(rows), "total": total, "tenders": rows}
 
 
 # NOTE: {tender_number:path} — the ":path" converter lets the route capture

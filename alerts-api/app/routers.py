@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from . import db
 from .auth import require_user
 from .dependencies import Pool
-from .documents import fetch_details, profile_from_documents, with_documents
+from .documents import fetch_details, invalidate_details, profile_from_documents, with_documents
 from .schemas import (
     BusinessProfileAlertOut,
     MatchedTender,
@@ -72,6 +72,25 @@ async def get_profile(pool: Pool, user: CurrentUser):
         raise HTTPException(404, PROFILE_NOT_FOUND)
     details = await fetch_details(user["id"], user["token"])
     item = serialise_profile(with_documents(profile, details))
+    item["document_provinces"] = details.get("provinces", [])
+    return item
+
+
+@router.post(
+    "/profile/refresh",
+    tags=["profile"],
+    responses={404: NO_PROFILE, 503: DB_UNAVAILABLE},
+)
+async def refresh_profile(pool: Pool, user: CurrentUser):
+    invalidate_details(user["id"])
+    details = await fetch_details(user["id"], user["token"])
+    profile = await db.fetch_business_profile(pool, user["id"])
+    if profile:
+        item = serialise_profile(with_documents(profile, details))
+    else:
+        item = profile_from_documents(details)
+    if not item:
+        raise HTTPException(409, "Upload a business profile or company documents before refreshing your profile.")
     item["document_provinces"] = details.get("provinces", [])
     return item
 

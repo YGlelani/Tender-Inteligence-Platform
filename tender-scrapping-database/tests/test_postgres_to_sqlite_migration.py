@@ -4,6 +4,7 @@ import json
 import sqlite3
 import tempfile
 import unittest
+from contextlib import closing
 from datetime import date, datetime, timezone
 from decimal import Decimal
 from pathlib import Path
@@ -35,19 +36,21 @@ class MigrationTests(unittest.TestCase):
     def test_refuses_nonempty_destination(self):
         with tempfile.TemporaryDirectory() as temp:
             db = Path(temp) / "existing.db"
-            with sqlite3.connect(db) as conn:
-                conn.executescript((ROOT / "db" / "schema.sql").read_text(encoding="utf-8"))
-                conn.execute("INSERT INTO organisations (name) VALUES (?)", ("Existing organisation",))
+            with closing(sqlite3.connect(db)) as conn:
+                with conn:
+                    conn.executescript((ROOT / "db" / "schema.sql").read_text(encoding="utf-8"))
+                    conn.execute("INSERT INTO organisations (name) VALUES (?)", ("Existing organisation",))
             with self.assertRaisesRegex(RuntimeError, "already contains data"):
                 migration.migrate("postgresql://not-used", str(db), str(ROOT / "db" / "schema.sql"))
-            with sqlite3.connect(db) as conn:
+            with closing(sqlite3.connect(db)) as conn:
                 self.assertEqual(conn.execute("SELECT COUNT(*) FROM organisations").fetchone()[0], 1)
 
     def test_schema_contains_all_source_tables(self):
         with tempfile.TemporaryDirectory() as temp:
             db = Path(temp) / "schema.db"
-            with sqlite3.connect(db) as conn:
-                conn.executescript((ROOT / "db" / "schema.sql").read_text(encoding="utf-8"))
+            with closing(sqlite3.connect(db)) as conn:
+                with conn:
+                    conn.executescript((ROOT / "db" / "schema.sql").read_text(encoding="utf-8"))
                 tables = {row[0] for row in conn.execute(
                     "SELECT name FROM sqlite_master WHERE type='table'")}
             self.assertEqual(set(migration.TABLES), {
@@ -63,13 +66,14 @@ class MigrationTests(unittest.TestCase):
     def test_schema_enforces_key_relationships(self):
         with tempfile.TemporaryDirectory() as temp:
             db = Path(temp) / "schema.db"
-            with sqlite3.connect(db) as conn:
-                conn.execute("PRAGMA foreign_keys = ON")
-                conn.executescript((ROOT / "db" / "schema.sql").read_text(encoding="utf-8"))
-                with self.assertRaises(sqlite3.IntegrityError):
-                    conn.execute("INSERT INTO business_profiles (user_id,business_name,industry) VALUES (999,'x','x')")
-                with self.assertRaises(sqlite3.IntegrityError):
-                    conn.execute("INSERT INTO tender_application_history (id,application_id,new_status) VALUES ('a','missing','Submitted')")
+            with closing(sqlite3.connect(db)) as conn:
+                with conn:
+                    conn.execute("PRAGMA foreign_keys = ON")
+                    conn.executescript((ROOT / "db" / "schema.sql").read_text(encoding="utf-8"))
+                    with self.assertRaises(sqlite3.IntegrityError):
+                        conn.execute("INSERT INTO business_profiles (user_id,business_name,industry) VALUES (999,'x','x')")
+                    with self.assertRaises(sqlite3.IntegrityError):
+                        conn.execute("INSERT INTO tender_application_history (id,application_id,new_status) VALUES ('a','missing','Submitted')")
 
 
 if __name__ == "__main__":

@@ -290,7 +290,7 @@ export const clientApi = {
 };
 
 
-/* SEARCH TENDER API (tender_apis, port 9009) */
+/* SEARCH TENDER API (client API, port 8001) */
 
 // Hides tenders whose closing date has passed unless include_closed is true.
 // Each tender includes its database id, which Saved Tenders needs.
@@ -305,7 +305,7 @@ export const tenderSearchApi = {
 };
 
 
-/* OVERVIEW API (tender_apis, port 8005) */
+/* OVERVIEW API (client API, port 8001) */
 
 // The dashboard's numbers. Open and closing counts use each tender's closing
 // time, and volume counts every tender published per day.

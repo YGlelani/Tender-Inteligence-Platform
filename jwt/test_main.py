@@ -1,8 +1,15 @@
+import os
+import pytest
 from fastapi.testclient import TestClient
+
+if os.getenv("JWT_TEST_DATABASE_URL"):
+    os.environ["DATABASE_URL"] = os.environ["JWT_TEST_DATABASE_URL"]
+
 from main import app
 
 client = TestClient(app)
 
+@pytest.mark.skipif(not os.getenv("JWT_TEST_DATABASE_URL"), reason="requires an isolated, seeded JWT test database")
 def test_successful_login():
     response = client.post(
         "/login",
@@ -18,6 +25,7 @@ def test_protected_route_without_token():
     response = client.get("/protected-tenders")
     assert response.status_code == 401
 
+@pytest.mark.skipif(not os.getenv("JWT_TEST_DATABASE_URL"), reason="requires an isolated, seeded JWT test database")
 def test_protected_route_with_token():
     # Log in first
     login_response = client.post(

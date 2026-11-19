@@ -14,6 +14,7 @@ import json
 import os
 import sqlite3
 import sys
+from contextlib import contextmanager
 from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -28,6 +29,20 @@ TABLES = (
     "tender_application_history", "tender_requirements",
     "alert_notifications", "profile_alert_notifications",
 )
+
+
+@contextmanager
+def sqlite_connection(path: Path):
+    """Commit or roll back work, then always close the SQLite file handle."""
+    connection = sqlite3.connect(path)
+    try:
+        yield connection
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        connection.close()
 
 
 def _normalise(value: Any) -> Any:
@@ -66,7 +81,7 @@ def migrate(postgres_url: str, sqlite_path: str, schema_path: str) -> dict[str, 
     if not schema_file.is_file():
         raise FileNotFoundError(f"SQLite schema not found: {schema_file}")
 
-    with sqlite3.connect(destination) as target:
+    with sqlite_connection(destination) as target:
         target.execute("PRAGMA foreign_keys = ON")
         target.executescript(schema_file.read_text(encoding="utf-8"))
         existing = {
@@ -83,7 +98,7 @@ def migrate(postgres_url: str, sqlite_path: str, schema_path: str) -> dict[str, 
     report: dict[str, dict[str, int]] = {}
     with psycopg.connect(postgres_url, row_factory=psycopg.rows.dict_row) as source:
         with source.transaction():
-            with sqlite3.connect(destination) as target:
+            with sqlite_connection(destination) as target:
                 target.execute("PRAGMA foreign_keys = ON")
                 target.execute("BEGIN")
                 try:

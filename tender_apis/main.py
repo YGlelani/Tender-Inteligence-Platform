@@ -8,6 +8,7 @@ import smtplib
 import sqlite3
 import ssl
 import threading
+import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, time as dtime, timedelta, timezone
 from email.message import EmailMessage
@@ -75,14 +76,14 @@ _API_DOCS_ON = os.getenv("ENABLE_API_DOCS", "").strip().lower() in {"1", "true",
 API_DOCS = {} if _API_DOCS_ON else {"docs_url": None, "redoc_url": None, "openapi_url": None}
 
 # Web pages allowed to call this API from a browser, comma-separated
-# (for example http://129.151.181.87:8009). Set in compose.yaml.
+# (for example https://app.example.com). Set per environment in Compose.
 CORS_ORIGINS = [origin.strip() for origin in os.getenv("CORS_ORIGINS", "").split(",") if origin.strip()]
 if not CORS_ORIGINS:
     logging.getLogger(__name__).warning("CORS_ORIGINS is not set: browsers on other sites cannot call this API.")
 
 app = FastAPI(**API_DOCS, title="Notifications API", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS, allow_credentials=False,
-                   allow_methods=["GET", "POST", "PUT"], allow_headers=["*"])
+                   allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"], allow_headers=["*"])
 security = HTTPBearer(auto_error=False)
 
 
@@ -500,6 +501,34 @@ class InternalNotification(BaseModel):
     dedupe_key: str | None = Field(default=None, max_length=200)
 
 
+APPLICATION_STATUSES = ("Interested", "Preparing", "Submitted", "Won", "Lost")
+
+
+class SavedTenderIn(BaseModel):
+    tender_id: int = Field(gt=0)
+    notes: str | None = Field(default=None, max_length=2000)
+
+
+class SavedTenderNotes(BaseModel):
+    notes: str | None = Field(default=None, max_length=2000)
+
+
+class ApplicationIn(BaseModel):
+    tender_id: int | None = Field(default=None, gt=0)
+    tender_number: str | None = Field(default=None, min_length=1, max_length=200)
+    status: str = Field(default="Interested", pattern="^(Interested|Preparing|Submitted|Won|Lost)$")
+    application_deadline: str | None = Field(default=None, max_length=30)
+    submission_date: str | None = Field(default=None, max_length=30)
+    notes: str | None = Field(default=None, max_length=10000)
+
+
+class ApplicationUpdate(BaseModel):
+    status: str | None = Field(default=None, pattern="^(Interested|Preparing|Submitted|Won|Lost)$")
+    application_deadline: str | None = Field(default=None, max_length=30)
+    submission_date: str | None = Field(default=None, max_length=30)
+    notes: str | None = Field(default=None, max_length=10000)
+
+
 def serialize(row):
     return {"id": row["id"], "type": row["type"], "title": row["title"], "message": row["message"],
             "link": row["link"], "tender_id": row["tender_id"], "created_at": row["created_at"],
@@ -525,6 +554,238 @@ def health():
     finally:
         if con:
             con.close()
+
+
+def _saved_tenders_for_user(con, user_id):
+    rows = con.execute(
+        """SELECT s.tender_id, s.notes, s.saved_at, t.tender_number, t.title, t.status,
+                  t.province, t.closing_date, t.published_date, t.tender_url,
+                  o.name AS organisation_name, c.name AS category_name
+           FROM saved_tenders s JOIN tenders t ON t.id=s.tender_id
+           LEFT JOIN organisations o ON o.id=t.organisation_id
+           LEFT JOIN categories c ON c.id=t.category_id
+           WHERE s.user_id=? ORDER BY s.saved_at DESC, s.tender_id DESC""",
+        (user_id,),
+    ).fetchall()
+    return [dict(row) for row in rows]
+
+
+@app.get("/api/saved-tenders")
+def list_saved_tenders(user_id: int = Depends(current_user_id)):
+    con = db()
+    try:
+        items = _saved_tenders_for_user(con, user_id)
+        return {"saved_tenders": items, "total": len(items)}
+    except sqlite3.Error:
+        raise HTTPException(503, detail="Saved tenders are not available")
+    finally:
+        con.close()
+
+
+@app.post("/api/saved-tenders", status_code=201)
+def save_tender(payload: SavedTenderIn, user_id: int = Depends(current_user_id)):
+    con = db()
+    try:
+        if con.execute("SELECT 1 FROM tenders WHERE id=?", (payload.tender_id,)).fetchone() is None:
+            raise HTTPException(404, detail="Tender not found")
+        con.execute(
+            """INSERT INTO saved_tenders(user_id, tender_id, notes) VALUES (?, ?, ?)
+               ON CONFLICT(user_id, tender_id) DO UPDATE SET
+                 notes=COALESCE(excluded.notes, saved_tenders.notes), updated_at=CURRENT_TIMESTAMP""",
+            (user_id, payload.tender_id, payload.notes),
+        )
+        con.commit()
+        return next(item for item in _saved_tenders_for_user(con, user_id)
+                    if item["tender_id"] == payload.tender_id)
+    except sqlite3.Error:
+        raise HTTPException(503, detail="Saved tenders are not available")
+    finally:
+        con.close()
+
+
+@app.patch("/api/saved-tenders/{tender_id}")
+def update_saved_tender(tender_id: int, payload: SavedTenderNotes,
+                        user_id: int = Depends(current_user_id)):
+    con = db()
+    try:
+        cur = con.execute(
+            "UPDATE saved_tenders SET notes=?, updated_at=CURRENT_TIMESTAMP WHERE user_id=? AND tender_id=?",
+            (payload.notes, user_id, tender_id),
+        )
+        if not cur.rowcount:
+            raise HTTPException(404, detail="Saved tender not found")
+        con.commit()
+        return next(item for item in _saved_tenders_for_user(con, user_id)
+                    if item["tender_id"] == tender_id)
+    except sqlite3.Error:
+        raise HTTPException(503, detail="Saved tenders are not available")
+    finally:
+        con.close()
+
+
+@app.delete("/api/saved-tenders/{tender_id}", status_code=204)
+def delete_saved_tender(tender_id: int, user_id: int = Depends(current_user_id)):
+    con = db()
+    try:
+        cur = con.execute("DELETE FROM saved_tenders WHERE user_id=? AND tender_id=?", (user_id, tender_id))
+        if not cur.rowcount:
+            raise HTTPException(404, detail="Saved tender not found")
+        con.commit()
+        return Response(status_code=204)
+    except sqlite3.Error:
+        raise HTTPException(503, detail="Saved tenders are not available")
+    finally:
+        con.close()
+
+
+def _application_by_id(con, user_id, application_id):
+    row = con.execute(
+        """SELECT a.*, t.tender_number AS tender_reference, t.title AS tender_title,
+                  t.closing_date, o.name AS organisation_name
+           FROM tender_applications a JOIN tenders t ON t.id=a.tender_id
+           LEFT JOIN organisations o ON o.id=t.organisation_id
+           WHERE a.user_id=? AND a.id=?""",
+        (user_id, application_id),
+    ).fetchone()
+    if row is None:
+        raise HTTPException(404, detail="Application not found")
+    item = dict(row)
+    deadline = item.get("application_deadline")
+    item["is_overdue"] = bool(deadline and deadline[:10] < now_utc().date().isoformat()
+                               and item["status"] not in ("Won", "Lost", "Submitted"))
+    return item
+
+
+@app.get("/api/applications")
+def list_applications(status_filter: str | None = Query(None, alias="status"),
+                      limit: int = Query(100, ge=1, le=500),
+                      sort_by: str = Query("deadline", pattern="^(deadline|created_at|status)$"),
+                      sort_order: str = Query("asc", pattern="^(asc|desc)$"),
+                      user_id: int = Depends(current_user_id)):
+    con = db()
+    try:
+        where = "a.user_id=?"
+        params = [user_id]
+        sort_column = {"deadline": "application_deadline", "created_at": "created_at", "status": "status"}[sort_by]
+        if status_filter:
+            if status_filter not in APPLICATION_STATUSES:
+                raise HTTPException(422, detail="Invalid application status")
+            where += " AND a.status=?"
+            params.append(status_filter)
+        total = con.execute(f"SELECT COUNT(*) FROM tender_applications a WHERE {where}", params).fetchone()[0]
+        rows = con.execute(
+            f"""SELECT a.id FROM tender_applications a WHERE {where}
+                ORDER BY a.{sort_column} {sort_order.upper()}, a.id LIMIT ?""",
+            [*params, limit],
+        ).fetchall()
+        items = [_application_by_id(con, user_id, row["id"]) for row in rows]
+        counts = {status: con.execute(
+            "SELECT COUNT(*) FROM tender_applications WHERE user_id=? AND status=?", (user_id, status)
+        ).fetchone()[0] for status in APPLICATION_STATUSES}
+        return {"applications": items, "total": total, "counts": counts}
+    except sqlite3.Error:
+        raise HTTPException(503, detail="Applications are not available")
+    finally:
+        con.close()
+
+
+@app.get("/api/applications/stats")
+def application_stats(user_id: int = Depends(current_user_id)):
+    con = db()
+    try:
+        counts = {status: con.execute(
+            "SELECT COUNT(*) FROM tender_applications WHERE user_id=? AND status=?", (user_id, status)
+        ).fetchone()[0] for status in APPLICATION_STATUSES}
+        return {"total": sum(counts.values()), "counts": counts}
+    except sqlite3.Error:
+        raise HTTPException(503, detail="Applications are not available")
+    finally:
+        con.close()
+
+
+@app.post("/api/applications", status_code=201)
+def create_application(payload: ApplicationIn, user_id: int = Depends(current_user_id)):
+    if not payload.tender_id and not payload.tender_number:
+        raise HTTPException(422, detail="tender_id or tender_number is required")
+    con = db()
+    try:
+        if payload.tender_id:
+            tender = con.execute("SELECT id FROM tenders WHERE id=?", (payload.tender_id,)).fetchone()
+        else:
+            tender = con.execute("SELECT id FROM tenders WHERE tender_number=?", (payload.tender_number.strip(),)).fetchone()
+        if tender is None:
+            raise HTTPException(404, detail="Tender not found")
+        application_id = str(uuid.uuid4())
+        con.execute(
+            """INSERT INTO tender_applications
+               (id, user_id, tender_id, status, application_deadline, submission_date, notes)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (application_id, user_id, tender["id"], payload.status,
+             payload.application_deadline, payload.submission_date, payload.notes),
+        )
+        con.execute(
+            "INSERT INTO tender_application_history(id, application_id, previous_status, new_status) VALUES (?, ?, NULL, ?)",
+            (str(uuid.uuid4()), application_id, payload.status),
+        )
+        con.commit()
+        return _application_by_id(con, user_id, application_id)
+    except sqlite3.IntegrityError:
+        con.rollback()
+        raise HTTPException(409, detail="Application already exists for this tender")
+    except sqlite3.Error:
+        con.rollback()
+        raise HTTPException(503, detail="Applications are not available")
+    finally:
+        con.close()
+
+
+@app.patch("/api/applications/{application_id}")
+def update_application(application_id: str, payload: ApplicationUpdate,
+                       user_id: int = Depends(current_user_id)):
+    con = db()
+    try:
+        current = con.execute(
+            "SELECT status FROM tender_applications WHERE id=? AND user_id=?", (application_id, user_id)
+        ).fetchone()
+        if current is None:
+            raise HTTPException(404, detail="Application not found")
+        changes = payload.model_dump(exclude_unset=True)
+        if not changes:
+            return _application_by_id(con, user_id, application_id)
+        new_status = changes.get("status")
+        assignments = [f"{field}=?" for field in changes]
+        assignments.append("updated_at=CURRENT_TIMESTAMP")
+        con.execute(f"UPDATE tender_applications SET {', '.join(assignments)} WHERE id=? AND user_id=?",
+                    [*changes.values(), application_id, user_id])
+        if new_status and new_status != current["status"]:
+            con.execute(
+                "INSERT INTO tender_application_history(id, application_id, previous_status, new_status) VALUES (?, ?, ?, ?)",
+                (str(uuid.uuid4()), application_id, current["status"], new_status),
+            )
+        con.commit()
+        return _application_by_id(con, user_id, application_id)
+    except sqlite3.Error:
+        con.rollback()
+        raise HTTPException(503, detail="Applications are not available")
+    finally:
+        con.close()
+
+
+@app.delete("/api/applications/{application_id}", status_code=204)
+def delete_application(application_id: str, user_id: int = Depends(current_user_id)):
+    con = db()
+    try:
+        cur = con.execute("DELETE FROM tender_applications WHERE id=? AND user_id=?", (application_id, user_id))
+        if not cur.rowcount:
+            raise HTTPException(404, detail="Application not found")
+        con.execute("DELETE FROM tender_application_history WHERE application_id=?", (application_id,))
+        con.commit()
+        return Response(status_code=204)
+    except sqlite3.Error:
+        con.rollback()
+        raise HTTPException(503, detail="Applications are not available")
+    finally:
+        con.close()
 
 
 @app.get("/notifications")

@@ -1,6 +1,7 @@
 # Secrets / local environment
 .env
 .env.*
+!.env.example
 
 # Databases (the platform database contains user accounts and business profiles)
 *.db

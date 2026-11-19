@@ -18,7 +18,7 @@ shares nothing with production.
 | Redis | `tender-redis`, host port 6379 | own `redis` service, no host port, key prefix `staging` |
 | Ollama | `tender-ollama`, host port 11434 | own `ollama` service, no host port, own model volume |
 | Image tags | `tender-frontend:latest`, `ghcr.io/yglelani/...:latest` | `tender-staging/<service>:staging` |
-| Host ports | 8000-8009, 9000-9009 | 18000-18009, 19000-19009 (same number + 10000) |
+| Host ports | 8000-8009, 9000-9009 | 18000-18009, 19000-19007 |
 | Settings | `.env` files per service folder, GitHub secrets | `.env.staging` with `STAGING_*` names only; no `env_file` |
 | Addresses between services | container names on `tender-scrapping-net` | pinned to staging service names; not configurable |
 
@@ -140,16 +140,10 @@ Production sets none of these variables, so its containers write an empty config
 the pages behave exactly as before. `check_staging.py` fails if any service in `scripts/config.js`
 is missing from `FRONTEND_SERVICE_PORTS` (it would otherwise call a production port).
 
-## Known gaps (need a decision or code that is not in this repository)
+## Deployment notes
 
-1. **Services the main site links to that are not in this repository**: Overview API (8005),
-   signup site (8008, which also serves `verify.html`), Business Profile API (9002),
-   Application Tracker API (9006), Saved Tenders API (9008), Tender Search API (9009). In
-   `tender_apis` they live on other branches (`Feature/overview-api`, `Feature/saved-tenders-api`,
-   `Feature/tender-application-tracker-api`, `Feature/search-tender-api`); the business profile
-   API and signup site are separate repositories. The staging site points those features at
-   staging ports (18005, 18008, 19002, 19006, 19008, 19009), so they fail rather than reach
-   production, until the services are added to `compose.staging.yaml`.
+1. **Signup verification page**: the signup API links to `STAGING_SIGNUP_FRONTEND_PORT` (18008
+   by default). This site must be deployed separately and configured to use this staging API.
 2. **Cache API source**: production runs the image `ghcr.io/yglelani/lelani-cache-api:latest`,
    built from another repository. Staging builds `cache-api/` from this repository; confirm
    the two are the same code.

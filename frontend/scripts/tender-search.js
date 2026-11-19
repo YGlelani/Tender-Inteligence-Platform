@@ -459,7 +459,7 @@ async function loadTenders() {
     }
 
     try {
-        // The Search Tender API (tender_apis, port 9009) reads the shared
+        // The Search Tender API (client API, port 8001) reads the shared
         // SQLite database and returns each tender's database id for saving.
         const payload = await tenderSearchApi.search(params);
         if (requestId !== state.requestId) return;

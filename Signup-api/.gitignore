@@ -1,6 +1,7 @@
 # Secrets: environment files stay on the machine that uses them
 .env
 .env.*
+!.env.example
 
 # Python
 __pycache__/

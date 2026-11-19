@@ -165,7 +165,7 @@ class TenderDB:
 
         sql = f"""
             SELECT
-                t.tender_number, t.title, t.description, t.status,
+                t.id, t.tender_number, t.title, t.description, t.status,
                 t.province, t.closing_date, t.published_date,
                 c.telephone AS contact_telephone,
                 c.email AS contact_email,

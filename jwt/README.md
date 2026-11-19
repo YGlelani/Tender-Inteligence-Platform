@@ -1,3 +1,7 @@
+# Monorepo deployment note
+
+This README contains historical standalone setup notes. For the current multi-environment deployment, use the repository-root guides in `docs/`. Do not reuse a previously deployed host address or database credentials from this document.
+
 # TenderScraping — Frontend Dashboard
 
 The web dashboard for the TenderScraping platform. It visualises scraped
@@ -36,9 +40,9 @@ step — the files you see are the files that ship.
 
 | App         | URL                              | In this repo? |
 |-------------|----------------------------------|---------------|
-| Dashboard   | `http://129.151.181.87:8009/`    | ✅ yes        |
-| Login       | `http://129.151.181.87:8005/`    | ❌ separate   |
-| Signup      | `http://129.151.181.87:8008/`    | ❌ separate   |
+| Dashboard   | `http://your-deployment-host:8009/`    | ✅ yes        |
+| Login       | `http://your-deployment-host:8005/`    | ❌ separate   |
+| Signup      | `http://your-deployment-host:8008/`    | ❌ separate   |
 
 ---
 
@@ -46,7 +50,7 @@ step — the files you see are the files that ship.
 
 The browser loads the static dashboard from nginx (`:8009`) and then calls the
 backend services **directly** from JavaScript. All services live on the same
-host (`129.151.181.87`) on different ports.
+host (`your-deployment-host`) on different ports.
 
 ```
                          ┌─────────────────────────────┐
@@ -55,7 +59,7 @@ host (`129.151.181.87`) on different ports.
         │
         │  fetch() calls (cross-origin, from the browser)
         ▼
-   ┌───────────────────────── backend services (129.151.181.87) ─────────────────────────┐
+   ┌───────────────────────── backend services (your-deployment-host) ─────────────────────────┐
    │  :8000  scraper   health / stats / scrape / scraping-logs                            │
    │  :8001  client    tenders list / search / detail / stats                             │
    │  :8002  ollama     AI generate / analyse / match / business-profiles                 │
@@ -129,11 +133,11 @@ served as-is to the browser.
 ```js
 export const CONFIG = {
   services: {
-    scraper: 'http://129.151.181.87:8000',
-    client:  'http://129.151.181.87:8001',
-    ollama:  'http://129.151.181.87:8002',
-    cache:   'http://129.151.181.87:8003',
-    signup:  'http://129.151.181.87:8007',
+    scraper: 'http://your-deployment-host:8000',
+    client:  'http://your-deployment-host:8001',
+    ollama:  'http://your-deployment-host:8002',
+    cache:   'http://your-deployment-host:8003',
+    signup:  'http://your-deployment-host:8007',
   },
   // ...endpoints, refresh intervals, requestTimeout
 };
@@ -177,7 +181,7 @@ locally will still call those remote services, so the data you see is live
 
 ## Deploying on the server
 
-The target is a Docker host reachable at `129.151.181.87`, serving the
+The target is a Docker host reachable at `your-deployment-host`, serving the
 dashboard on port **8009**. The group requirement is to deploy on the server
 (not GitHub Pages / Vercel) and share `public_ip:port`.
 
@@ -209,7 +213,7 @@ docker compose up -d --build
 
 `up -d --build` rebuilds the image and recreates the container only if
 something changed, so there's minimal downtime. Then visit
-`http://129.151.181.87:8009/`.
+`http://your-deployment-host:8009/`.
 
 ### Automated deploy
 
@@ -251,7 +255,7 @@ curl -I http://localhost:8009/           # page loads
 curl    http://localhost:8009/healthz    # -> ok
 
 # from anywhere
-curl -I http://129.151.181.87:8009/
+curl -I http://your-deployment-host:8009/
 ```
 
 ---
@@ -264,7 +268,7 @@ dev-tools Network tab:
 
 - **CORS error** — the backend must send
   `Access-Control-Allow-Origin` for the dashboard's origin
-  (`http://129.151.181.87:8009`). This is a backend-side fix.
+  (`http://your-deployment-host:8009`). This is a backend-side fix.
 - **Mixed content (blocked)** — happens only if the page is served over
   **HTTPS** while the APIs are plain `http://`. Currently everything is HTTP, so
   this shouldn't occur; if you add TLS to the dashboard, you must also serve the
