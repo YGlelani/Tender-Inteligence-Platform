@@ -34,16 +34,16 @@ the public eTenders site; accounts are created by signing up on the staging site
 |---|---|---|---|
 | Main site (`frontend`) | 18009 | `frontend:80` | Production: `USER_SERVER_PORT` (8009) |
 | AI workspace (`tender-ai-frontend`) | 19001 | `tender-ai-frontend:80` | |
-| Scraper API (`tender-scrapping-database/scraper-api`) | 18000 | `scraper-api:8000` | |
-| Client API (`tender-scrapping-database/client-api`) | 18001 | `client-api:8001` | Creates the schema (`db/schema.sql`) on first start |
-| AI service (`tender-scrapping-database/ai`) | none | `ai:8002` | Not published, as in production |
-| Cache API (`cache-api`) | 18003 | `cache-api:8003` (alias `lelani-cache-api`) | |
+| Scraper API (`services/tender-scrapping-database/scraper-api`) | 18000 | `scraper-api:8000` | |
+| Client API (`services/tender-scrapping-database/client-api`) | 18001 | `client-api:8001` | Creates the schema (`db/schema.sql`) on first start |
+| AI service (`services/tender-scrapping-database/ai`) | none | `ai:8002` | Not published, as in production |
+| Cache API (`services/cache-api`) | 18003 | `cache-api:8003` (alias `lelani-cache-api`) | |
 | Login API (`jwt`) | 18006 | `jwt-api:8006` | Signs in against the staging `tenders.db` |
-| Signup API (`Signup-api`) | 18007 | `signup-api:8000` | |
-| Notifications API (`tender_apis`) | 19007 | `tender-notifications-api:8000` | |
-| Alerts API (`alerts-api`) | 19005 | `alerts-api:9005` | |
-| Tender ML (`tender-ml`) | 127.0.0.1:19004 | `tender-ml:9004` | This machine only |
-| AI agent (`tender-ai-agent`) | 19000 | `tender-agent-api:9000` (alias `agent-api`) | |
+| Signup API (`services/Signup-api`) | 18007 | `signup-api:8000` | |
+| Notifications API (`services/tender_apis`) | 19007 | `tender-notifications-api:8000` | |
+| Alerts API (`services/alerts-api`) | 19005 | `alerts-api:9005` | |
+| Tender ML (`services/tender-ml`) | 127.0.0.1:19004 | `tender-ml:9004` | This machine only |
+| AI agent (`services/tender-ai-agent`) | 19000 | `tender-agent-api:9000` (alias `agent-api`) | |
 | Redis, Ollama | none | `redis:6379`, `ollama:11434` | |
 
 Every port can be changed with its `STAGING_*_PORT` setting ([ENVIRONMENT_VARIABLES.md](ENVIRONMENT_VARIABLES.md)).
@@ -145,7 +145,7 @@ is missing from `FRONTEND_SERVICE_PORTS` (it would otherwise call a production p
 1. **Signup verification page**: the signup API links to `STAGING_SIGNUP_FRONTEND_PORT` (18008
    by default). This site must be deployed separately and configured to use this staging API.
 2. **Cache API source**: production runs the image `ghcr.io/yglelani/lelani-cache-api:latest`,
-   built from another repository. Staging builds `cache-api/` from this repository; confirm
+   built from another repository. Staging builds `services/cache-api/` from this repository; confirm
    the two are the same code.
 3. **E-mail**: the Signup, Login and Notifications APIs need STARTTLS or SMTPS with a valid
    certificate and a username/password, so a local catcher such as Mailpit does not work

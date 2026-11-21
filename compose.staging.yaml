@@ -95,7 +95,7 @@ services:
   # -------------------------------------------------------------------------
   client-api:
     build:
-      context: ./tender-scrapping-database
+      context: ./services/tender-scrapping-database
       dockerfile: client-api/Dockerfile
     image: tender-staging/client-api:${STAGING_IMAGE_TAG:-staging}
     logging: *default-logging
@@ -115,7 +115,7 @@ services:
 
   scraper-api:
     build:
-      context: ./tender-scrapping-database
+      context: ./services/tender-scrapping-database
       dockerfile: scraper-api/Dockerfile
     image: tender-staging/scraper-api:${STAGING_IMAGE_TAG:-staging}
     logging: *default-logging
@@ -143,7 +143,7 @@ services:
 
   ai:
     build:
-      context: ./tender-scrapping-database/ai
+      context: ./services/tender-scrapping-database/ai
     image: tender-staging/ai:${STAGING_IMAGE_TAG:-staging}
     logging: *default-logging
     restart: unless-stopped
@@ -173,7 +173,7 @@ services:
   # -------------------------------------------------------------------------
   cache-api:
     build:
-      context: ./cache-api
+      context: ./services/cache-api
     image: tender-staging/cache-api:${STAGING_IMAGE_TAG:-staging}
     logging: *default-logging
     restart: unless-stopped
@@ -233,7 +233,7 @@ services:
 
   signup-api:
     build:
-      context: ./Signup-api
+      context: ./services/Signup-api
     image: tender-staging/signup-api:${STAGING_IMAGE_TAG:-staging}
     logging: *default-logging
     restart: unless-stopped
@@ -266,7 +266,7 @@ services:
 
   tender-notifications-api:
     build:
-      context: ./tender_apis
+      context: ./services/tender_apis
     image: tender-staging/notifications-api:${STAGING_IMAGE_TAG:-staging}
     logging: *default-logging
     restart: unless-stopped
@@ -297,7 +297,7 @@ services:
   # -------------------------------------------------------------------------
   alerts-api:
     build:
-      context: ./alerts-api
+      context: ./services/alerts-api
     image: tender-staging/alerts-api:${STAGING_IMAGE_TAG:-staging}
     logging: *default-logging
     restart: unless-stopped
@@ -322,7 +322,7 @@ services:
 
   tender-ml:
     build:
-      context: ./tender-ml
+      context: ./services/tender-ml
     image: tender-staging/tender-ml:${STAGING_IMAGE_TAG:-staging}
     logging: *default-logging
     restart: unless-stopped
@@ -351,7 +351,7 @@ services:
   # -------------------------------------------------------------------------
   tender-agent-api:
     build:
-      context: ./tender-ai-agent
+      context: ./services/tender-ai-agent
     image: tender-staging/tender-ai-agent:${STAGING_IMAGE_TAG:-staging}
     logging: *default-logging
     restart: unless-stopped

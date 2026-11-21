@@ -70,14 +70,13 @@ created, merged or pushed.
 **Action:** create `dev`, `testing`, `staging` and `prod` in this repository from `main`
 (GitHub: Branches -> New branch). The workflows already reference them.
 
-How this repository relates to the service repositories: each folder here is identical,
-file by file, to its service repository's `main` as last fetched (commits of 16-18 November
-2026), except `tender_apis/`, which matches the `Feature/notifications-api` branch.
+How this repository relates to the service repositories: the service folders under `services/` match,
+file by file, their service repositories' `main` branches as last fetched (commits of 16-18 November
+2026), except `services/tender_apis/`, which matches the `Feature/notifications-api` branch.
 `jwt/` was brought up to date with `musiwalo-jwt-api` `main` (commit `cabf759`) on
-19 November 2026; it used to be the older PostgreSQL version. `cache-api/` has no local
-clone of its source repository to compare with. The `.github/workflows` folders
-inside the service folders are those repositories' own workflows; GitHub does not run
-workflows from subfolders, so in this repository only the root `.github/workflows` run.
+19 November 2026; it used to be the older PostgreSQL version. `services/cache-api/` has no local
+clone of its source repository to compare with. Service-local workflow copies were removed;
+the root `.github/workflows/` directory is the single source for this monorepo's automation.
 
 ## GitHub configuration
 
@@ -153,7 +152,7 @@ the reverted source). Data volumes are never removed by these workflows.
 | 1 | The old `jwt/main.py` and `jwt/test_db.py` contained a hard-coded **production PostgreSQL address and password**; `test_db.py` connected to that server whenever `pytest` collected it. | The password is still in this repository's Git history (initial commit), which is on GitHub | **Fixed in the files** (jwt/ updated, see 2). Still to do: rotate that PostgreSQL password, or drop the PostgreSQL server if nothing uses it since the SQLite migration. Removing it from history needs a history rewrite and force-push. |
 | 2 | `jwt/` was older than `musiwalo-jwt-api` `main` (PostgreSQL vs SQLite login). | Staging sign-in failed; deploying it would have broken production sign-in | **Fixed**: `jwt/` now matches `musiwalo-jwt-api` `main`; `deploy_production.sh` deploys it like its own workflow. |
 | 3 | `jwt/__pycache__/*.pyc` were committed. | Stale bytecode in the image | **Fixed**: deleted (shows as deleted in `git status`); `.gitignore` keeps them out. |
-| 4 | `jwt`, `alerts-api` and `tender-scrapping-database/ai` had no `.dockerignore`, and their Dockerfiles copy the whole folder, so a `.env` there was baked into the image. | Secrets inside image layers | **Fixed**: `.dockerignore` files exclude `.env`, caches and local databases. Containers still get the values from Compose. |
-| 5 | `cache-api/.github/workflows/build.yml` built `ghcr.io/<owner>/ cache-api` (a space in the image name). Its deploy step also pulls a service named `cache-api`, while production's compose file calls it `lelani-cache-api`. | That workflow fails | Space **fixed** in this repository's copy. The service-name mismatch is left as is: production's cache image comes from another repository. |
+| 4 | `jwt`, `services/alerts-api` and `services/tender-scrapping-database/ai` had no `.dockerignore`, and their Dockerfiles copy the whole folder, so a `.env` there was baked into the image. | Secrets inside image layers | **Fixed**: `.dockerignore` files exclude `.env`, caches and local databases. Containers still get the values from Compose. |
+| 5 | The service copy of `cache-api` once had a nested build workflow with an invalid image name and service reference. | That workflow failed | Nested copies are removed; the root workflow is authoritative. Production's cache image still comes from its external source. |
 | 6 | Production publishes Redis (6379) and Ollama (11434) on all interfaces; production compose defaults hard-code the server IP in `CORS_ORIGINS`. | Unauthenticated access from the internet if the firewall allows it | Remove those `ports:` or bind them to `127.0.0.1`; pass `CORS_ORIGINS` explicitly. Not changed here, to keep production untouched. |
-| 7 | `tender_apis` holds each API on its own branch; only the Notifications API is in this repository. | Overview, Saved Tenders, Tracker and Search APIs cannot be tested in staging | Add them as folders here, then to `compose.staging.yaml`. |
+| 7 | The main site includes tender search, overview, saved tenders, application tracking, and business profile features. | A frontend route can appear available before its API exists. | These API routes are implemented in the client, alerts, and notifications services under `services/` and included in the staging stack. |

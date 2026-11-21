@@ -7,8 +7,8 @@
 #                              secrets and probed by scripts/staging/smoke_test.sh
 #
 # Runs on GitHub-hosted runners only. It never deploys and never sees a real secret.
-# (The .github/workflows folders inside the service folders are copies from the
-# original service repositories; GitHub does not run workflows from subfolders.)
+# All automated checks run from this root workflow set after the services were
+# consolidated under services/; per-service nested workflows are not used here.
 name: Build and test
 
 on:
@@ -45,10 +45,12 @@ jobs:
         run: |
           set -euo pipefail
           # These files read .env files that only exist on the server; empty ones are enough to parse them.
-          for dir in alerts-api jwt tender_apis; do touch "$dir/.env"; done
+          for dir in services/alerts-api jwt services/tender_apis; do touch "$dir/.env"; done
           export USER_SERVER_PORT=8009
-          for file in tender-scrapping-database/compose.yaml tender-ai-agent/compose.yaml Signup-api/compose.yaml \
-                      alerts-api/compose.yaml jwt/compose.yml tender_apis/compose.yaml tender-ml/compose.yaml \
+          export AGENT_URL=http://127.0.0.1:9000
+          export LOGIN_URL=http://127.0.0.1:8009/login.html
+          for file in services/tender-scrapping-database/compose.yaml services/tender-ai-agent/compose.yaml services/Signup-api/compose.yaml \
+                      services/alerts-api/compose.yaml jwt/compose.yml services/tender_apis/compose.yaml services/tender-ml/compose.yaml \
                       frontend/compose.yaml tender-ai-frontend/docker-compose.yml; do
             echo "Checking $file"
             docker compose -f "$file" config --quiet
@@ -66,31 +68,31 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - service: alerts-api
+          - service: services/alerts-api
             python: "3.11"
             install: pip install -r requirements-dev.txt
             audit: pip-audit -r requirements.txt
             test: |
               python -m compileall -q app tests
               python -m pytest -q
-          - service: Signup-api
+          - service: services/Signup-api
             python: "3.11"
             install: pip install -r requirements.txt pytest httpx
             audit: pip-audit -r requirements.txt
             test: python -m pytest -q
-          - service: tender_apis
+          - service: services/tender_apis
             python: "3.11"
             install: pip install -r requirements.txt pytest
             audit: pip-audit -r requirements.txt
             test: ENABLE_SCHEDULER=false python -m pytest -q
-          - service: tender-ml
+          - service: services/tender-ml
             python: "3.13"
             install: pip install -r requirements-dev.txt
             audit: ""
             test: |
               python -m compileall -q tender_ml tests app.py train.py predict.py audit.py compare_models.py
               python -m pytest -q
-          - service: tender-scrapping-database
+          - service: services/tender-scrapping-database
             python: "3.11"
             install: ""
             audit: |
@@ -129,12 +131,12 @@ jobs:
               PY
               DATABASE_PATH="$RUNNER_TEMP/login-tests.db" JWT_SECRET=ci-only-jwt-secret SESSION_TIMEOUT_HOURS=2 python -m pytest -q
           # No test suites exist yet for these two: syntax check only.
-          - service: cache-api
+          - service: services/cache-api
             python: "3.12"
             install: ""
             audit: ""
             test: python -m compileall -q app
-          - service: tender-ai-agent
+          - service: services/tender-ai-agent
             python: "3.12"
             install: ""
             audit: pip-audit -r requirements.txt

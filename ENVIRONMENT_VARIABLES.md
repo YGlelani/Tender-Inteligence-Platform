@@ -155,7 +155,7 @@ Production variables: `USER_SERVER_PORT` (main site port, today 8009), `PRODUCTI
 | jwt (Login API) | `JWT_SECRET`, `DATABASE_PATH`, `SESSION_TIMEOUT_HOURS`, `CORS_ORIGINS`, `NOTIFICATIONS_API_URL`, `INTERNAL_API_KEY`, `EMAIL_FROM`, `SMTP_*`, `LOGIN_WINDOW_SECONDS`, `LOGIN_MAX_FAILURES_PER_ACCOUNT`, `LOGIN_MAX_FAILURES_PER_IP`, `RESET_CODE_MINUTES`, `RESET_CODE_CLEANUP_INTERVAL_SECONDS`, `ENABLE_API_DOCS` |
 | Signup-api | `DATABASE_PATH`, `JWT_SECRET`, `JWT_ALGORITHM`, `CORS_ORIGINS`, `EMAIL_CONFIRMATION_URL`, `LOGIN_URL`, `EMAIL_FROM`, `SMTP_*`, `VERIFICATION_TOKEN_EXPIRE_MINUTES`, `NOTIFICATIONS_API_URL`, `INTERNAL_API_KEY`, `AGENT_API_URL`, `ACCOUNT_DELETION_KEY`, `RATE_LIMIT_*`, `ACCOUNT_JOBS_INTERVAL_SECONDS`, `DEACTIVATED_ACCOUNT_RETENTION_DAYS`, `DELETION_WARNING_DAYS`, `ENABLE_API_DOCS` |
 | tender_apis (Notifications) | `DATABASE_PATH`, `JWT_SECRET`, `JWT_ALGORITHM`, `INTERNAL_API_KEY`, `APP_URL`, `PUBLIC_API_URL`, `EMAIL_FROM`, `SMTP_*`, `CORS_ORIGINS`, `ENABLE_SCHEDULER`, `NOTIFY_INTERVAL_MINUTES`, `MATCH_MIN_SCORE`, `NOTIFICATION_RETENTION_DAYS`, `UNSUBSCRIBE_LINK_DAYS`, `ENABLE_API_DOCS` |
-| tender-ai-agent | see [tender-ai-agent/.env.example](tender-ai-agent/.env.example) (Azure AI, embeddings, upstream URLs, Redis, caches, sync, data dir, CORS, keys) |
+| tender-ai-agent | see [services/tender-ai-agent/.env.example](services/tender-ai-agent/.env.example) (Azure AI, embeddings, upstream URLs, Redis, caches, sync, data dir, CORS, keys) |
 | tender-ml | `DATABASE_PATH`, `MODEL_PATH`, `REPORTS_DIR` |
 | tender-scrapping-database scraper-api | `DATABASE_PATH`, `API_KEY`, `CORS_ORIGINS`, `ETENDERS_*`, `SCRAPER_LOOP_*` |
 | tender-scrapping-database client-api | `DATABASE_PATH`, `CORS_ORIGINS` |

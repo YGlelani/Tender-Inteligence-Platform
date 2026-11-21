@@ -6,18 +6,22 @@ production release.
 
 ## Services
 
+Deployable backend services are grouped under `services/`. The two browser frontends,
+the Login API (`jwt/`), and repository-wide deployment tooling remain at the repository
+root because they are shared entry points rather than members of that backend group.
+
 | Folder | What it is | Tech | Production port |
 |---|---|---|---|
 | [frontend](frontend) | Main site (dashboard, search, alerts, profile, tracker) | static HTML/JS on nginx | 8009 (`USER_SERVER_PORT`) |
 | [tender-ai-frontend](tender-ai-frontend) | AI workspace (chat, matches, bid strategy) | static HTML/JS on nginx | 9001 |
-| [tender-scrapping-database](tender-scrapping-database) | Scraper API, Client API, AI service, Ollama, Redis, cache | FastAPI, Playwright, SQLite | 8000, 8001, 8003 (8002 internal) |
-| [cache-api](cache-api) | Redis read-through cache in front of the Client API | FastAPI, Redis | 8003 |
+| [services/tender-scrapping-database](services/tender-scrapping-database) | Scraper API, Client API, AI service, Ollama, Redis | FastAPI, Playwright, SQLite | 8000, 8001 (8002 internal) |
+| [services/cache-api](services/cache-api) | Redis read-through cache in front of the Client API | FastAPI, Redis | 8003 |
 | [jwt](jwt) | Login API (sign-in tokens) | FastAPI | 8006 |
-| [Signup-api](Signup-api) | Sign-up, e-mail verification, account settings | FastAPI, SQLite | 8007 |
-| [tender_apis](tender_apis) | Notifications API (bell + e-mail) | FastAPI, SQLite | 9007 |
-| [alerts-api](alerts-api) | Smart alerts / profile-based tender matching | FastAPI, SQLite | 9005 |
-| [tender-ml](tender-ml) | Tender category model | scikit-learn, FastAPI | 9004 |
-| [tender-ai-agent](tender-ai-agent) | AI agent (chat, documents, semantic search) | FastAPI, LangGraph, Azure AI, Redis | 9000 |
+| [services/Signup-api](services/Signup-api) | Sign-up, e-mail verification, account settings | FastAPI, SQLite | 8007 |
+| [services/tender_apis](services/tender_apis) | Notifications API (bell + e-mail) | FastAPI, SQLite | 9007 |
+| [services/alerts-api](services/alerts-api) | Smart alerts / profile-based tender matching | FastAPI, SQLite | 9005 |
+| [services/tender-ml](services/tender-ml) | Tender category model | scikit-learn, FastAPI | 9004 |
+| [services/tender-ai-agent](services/tender-ai-agent) | AI agent (chat, documents, semantic search) | FastAPI, LangGraph, Azure AI, Redis | 9000 |
 
 Most APIs share one SQLite database (`/data/tenders.db`) on a shared Docker volume and reach
 each other by container name on one Docker network. Browsers call the APIs directly on

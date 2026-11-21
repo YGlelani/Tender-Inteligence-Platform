@@ -10,7 +10,7 @@ production values) and that every Dockerfile the stack builds exists with its CO
 Usage:
     python scripts/staging/check_staging.py --env-file .env.staging
     python scripts/staging/check_staging.py --env-file .env.staging.example --allow-placeholders   (CI)
-    python scripts/staging/check_staging.py --env-file .env.staging --production-env Signup-api/.env alerts-api/.env
+    python scripts/staging/check_staging.py --env-file .env.staging --production-env services/Signup-api/.env services/alerts-api/.env
         (on the server: fails if any staging secret equals a production value)
 
 Exit code 0 = no errors (warnings are printed but allowed), 1 = errors.
@@ -35,13 +35,13 @@ STAGING_FILE = "compose.staging.yaml"
 STAGING_PROJECT = "tender-staging"
 # The production Compose files, deployed today from the individual service repositories.
 PRODUCTION_FILES = [
-    "tender-scrapping-database/compose.yaml",
-    "tender-ai-agent/compose.yaml",
-    "Signup-api/compose.yaml",
-    "alerts-api/compose.yaml",
+    "services/tender-scrapping-database/compose.yaml",
+    "services/tender-ai-agent/compose.yaml",
+    "services/Signup-api/compose.yaml",
+    "services/alerts-api/compose.yaml",
     "jwt/compose.yml",
-    "tender_apis/compose.yaml",
-    "tender-ml/compose.yaml",
+    "services/tender_apis/compose.yaml",
+    "services/tender-ml/compose.yaml",
     "frontend/compose.yaml",
     "tender-ai-frontend/docker-compose.yml",
 ]

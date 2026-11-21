@@ -67,7 +67,7 @@ wait_for() { # <url> <container>
 
 deploy_tender_scrapping_database() {
     require SCRAPER_API_KEY AI_SERVICE_API_KEY ETENDERS_BASE_URL
-    cd "$ROOT/tender-scrapping-database"
+    cd "$ROOT/services/tender-scrapping-database"
     # Project "tender-scrapping" (name: in compose.yaml). Services are listed so the
     # one-time sqlite-migrate job does not run; no --remove-orphans, so containers this
     # file no longer describes are left alone.
@@ -107,7 +107,7 @@ deploy_login_api() {
 
 deploy_signup_api() {
     require JWT_SECRET EMAIL_CONFIRMATION_URL EMAIL_FROM SMTP_HOST SMTP_USERNAME SMTP_PASSWORD INTERNAL_API_KEY
-    cd "$ROOT/Signup-api"
+    cd "$ROOT/services/Signup-api"
     [ -n "${ACCOUNT_DELETION_KEY:-}" ] || echo "::warning::ACCOUNT_DELETION_KEY is not set, so account deletion will answer 503."
     write_env . \
         "DATABASE_PATH=/data/tenders.db" \
@@ -130,7 +130,7 @@ deploy_signup_api() {
 
 deploy_notifications_api() {
     require JWT_SECRET INTERNAL_API_KEY
-    cd "$ROOT/tender_apis"
+    cd "$ROOT/services/tender_apis"
     write_env . \
         "JWT_SECRET=$JWT_SECRET" \
         "JWT_ALGORITHM=${JWT_ALGORITHM:-HS256}" \
@@ -149,7 +149,7 @@ deploy_notifications_api() {
 
 deploy_alerts_api() {
     require JWT_SECRET
-    cd "$ROOT/alerts-api"
+    cd "$ROOT/services/alerts-api"
     write_env . \
         "JWT_SECRET=$JWT_SECRET" \
         "DATABASE_PATH=/data/tenders.db" \
@@ -159,7 +159,7 @@ deploy_alerts_api() {
 }
 
 deploy_tender_ml() {
-    cd "$ROOT/tender-ml"
+    cd "$ROOT/services/tender-ml"
     docker compose -p "$PROJECT_TENDER_ML" build
     # Exit code 2 means the saved model scored better and was kept, which is fine.
     docker compose -p "$PROJECT_TENDER_ML" run --rm tender-ml python train.py || [ $? -eq 2 ]
@@ -169,7 +169,7 @@ deploy_tender_ml() {
 
 deploy_tender_ai_agent() {
     require AZURE_AI_API_KEY AZURE_AI_ENDPOINT AZURE_AI_DEPLOYMENT AI_SERVICE_API_KEY
-    cd "$ROOT/tender-ai-agent"
+    cd "$ROOT/services/tender-ai-agent"
     local image
     image="$(docker compose config --images agent-api)"
     # compose.yaml runs a pre-built image, so build it under that exact name first.
